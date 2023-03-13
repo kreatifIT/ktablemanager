@@ -1,0 +1,9 @@
+package: ktablemanager
+author: Kreatif GmbH
+version: '0.0.1'
+
+requires:
+    redaxo: '>=5.14'
+    packages:
+        yform: '>=4.0'
+        yform_usability: ^2.0
