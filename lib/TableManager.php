@@ -101,7 +101,7 @@ class TableManager
                 'html' => '<div class="col-lg-'.$size.'">',
             ],
         ];
-        $fields($this->table);
+        $fields();
         $this->fields[] = [
             'fieldName' => "row{$this->row}__col_{$this->col}_end",
             'typeName' => 'html',
@@ -177,13 +177,26 @@ class TableManager
      * @param string    $label
      * @param null|bool $search
      * @param null|bool $listHidden
+     * @param array     $options
      * @return void
      */
-    public function addEmailField(string $name, string $label, ?bool $search = null, ?bool $listHidden = null): void
-    {
-        $this->addField($name, 'email', $label, $search, $listHidden, [
-            'db_type' => 'varchar(191)',
-        ]);
+    public function addEmailField(
+        string $name,
+        string $label,
+        ?bool $search = null,
+        ?bool $listHidden = null,
+        array $options = []
+    ): void {
+        $this->addField(
+            $name,
+            'email',
+            $label,
+            $search,
+            $listHidden,
+            array_merge([
+                'db_type' => 'varchar(191)',
+            ], $options)
+        );
     }
 
     /**
@@ -218,6 +231,20 @@ class TableManager
                 'list_hidden' => $listHidden ?? true,
                 'search' => $search ?? false,
             ]),
+        ];
+    }
+
+    public function addValidateField(
+        string $name,
+        string $type,
+        array $options = []
+    ) {
+        $this->fields[] = [
+            'yformType' => 'validate',
+            'fieldName' => $name,
+            'typeName' => $type,
+            'createValues' => [],
+            'updateValues' => $options,
         ];
     }
 
@@ -324,7 +351,7 @@ class TableManager
                     ],
                 ];
             }
-            $fields($this->table, $clang->getId());
+            $fields($clang->getId());
             $idx++;
         }
 
@@ -439,6 +466,7 @@ class TableManager
     }
 
     /**
+     * @param bool   $langId
      * @param string $fieldName
      * @return void
      */
@@ -516,7 +544,7 @@ class TableManager
             ],
         ];
 
-        $fields($this->table);
+        $fields();
 
         $this->fields[] = [
             'fieldName' => "row{$this->row}_end",
@@ -576,6 +604,7 @@ class TableManager
      * @param string    $class
      * @param null|bool $search
      * @param null|bool $listHidden
+     * @param array     $options
      * @return void
      */
     public function addTextareaField(
@@ -583,15 +612,23 @@ class TableManager
         string $label,
         string $class = '',
         ?bool $search = null,
-        ?bool $listHidden = null
+        ?bool $listHidden = null,
+        array $options = []
     ) {
-        $this->addField($name, 'textarea', $label, $search, $listHidden, [
-            'attributes' => json_encode([
-                'class' => $class.' form-control',
-                'rows' => 3,
-            ]),
-            'db_type' => 'text',
-        ]);
+        $this->addField(
+            $name,
+            'textarea',
+            $label,
+            $search,
+            $listHidden,
+            array_merge([
+                'db_type' => 'text',
+                'attributes' => json_encode([
+                    'class' => $class.' form-control',
+                    'rows' => 3,
+                ]),
+            ], $options)
+        );
     }
 
     /**
@@ -793,7 +830,7 @@ class TableManager
         $indexFromField = $this->getIndex($field);
 
         $this->fields = [];
-        $fields($this->table, $clangId);
+        $fields($clangId);
         $this->fields = array_merge(
             array_slice($fieldsCopy, 0, $indexFromField + 1),
             $this->fields,
@@ -852,12 +889,18 @@ class TableManager
     public function synchronize(): void
     {
         foreach ($this->fields as $key => $field) {
+            $yformType = $field['yformType'] ?: 'value';
             $fieldName = $field['fieldName'];
             $typeName = $field['typeName'];
             $createValues = $field['createValues'] ?: [];
             $updateValues = $field['updateValues'] ?: [];
             $updateValues = array_merge($updateValues, ['prio' => $key]);
-            Usability::ensureValueField($this->table, $fieldName, $typeName, $createValues, $updateValues);
+
+            if ('validate' == $yformType) {
+                Usability::ensureValidateField($this->table, $fieldName, $typeName, $createValues, $updateValues);
+            } else {
+                Usability::ensureValueField($this->table, $fieldName, $typeName, $createValues, $updateValues);
+            }
         }
 
         \rex_yform_manager_table_api::generateTableAndFields(\rex_yform_manager_table::get($this->table));
