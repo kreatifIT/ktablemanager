@@ -12,27 +12,27 @@ $tm->addRow(function () use ($tm) {
     $tm->addColumn(4, function () use ($tm) {
         $tm->addLangFields(function ($langId) use ($tm) {
             $tm->addNameField($langId);
-            $tm->addMediaField("image_{$langId}", 'Vorschaubild', 0, 1, [
+            $tm->addMediaField("image_{$langId}", 'Vorschaubild', [
                 'preview' => 1,
                 'category' => 4,
             ]);
-            $tm->addMediaField("image_print_{$langId}", 'Vorlage Druck Bild', 0, 1);
+            $tm->addMediaField("image_print_{$langId}", 'Vorlage Druck Bild');
         });
-        $tm->addMediaField("cardholder_front", 'Cardholder Vorderseite', 0, 1, [
+        $tm->addMediaField("cardholder_front", 'Cardholder Vorderseite', [
             'preview' => 1,
             'category' => 16,
         ]);
-        $tm->addNumberField("surcharge", 'Aufpreis', 0, 1, [
+        $tm->addNumberField("surcharge", 'Aufpreis',  [
             'precision' => 5,
             'scale' => 2,
             'unit' => '€',
         ]);
       
-        $tm->addField('template_constructor', 'hidden_input', 'Vorlagen Klasse', 0, 1, [
+        $tm->addField('template_constructor', 'hidden_input', 'Vorlagen Klasse', [
             'db_type' => 'varchar(191)',
             'attributes' => '{"readonly":"readonly}',
         ]);
-        $tm->addField('template_class_params', 'hidden_input', 'Vorlage Parameter', 0, 1, [
+        $tm->addField('template_class_params', 'hidden_input', 'Vorlage Parameter',  [
             'db_type' => 'text',
             'attributes' => '{"class":"form-control codemirror","rows":1}',
         ]);
@@ -43,8 +43,6 @@ $tm->addRow(function () use ($tm) {
             'Vorlagengruppe',
             'rex_prj_card_template_group',
             'name_1',
-            1,
-            0,
             1,
             [
                 'empty_value' => 'Bitte Vorlagengruppe auswählen',
@@ -57,10 +55,8 @@ $tm->addRow(function () use ($tm) {
             'name_1',
             'rex_prj_card_type_has_template',
             0,
-            0,
-            1
         );
-        $tm->addChoiceField('available_for_user_type', 'Für folgende Nutzergruppe verfügbar', 0, 1, [
+        $tm->addChoiceField('available_for_user_type', 'Für folgende Nutzergruppe verfügbar',  [
             'choices' => '{"Private": "private_member","Firmen": "company_member"}',
             'multiple' => '1',
         ]);
@@ -71,14 +67,12 @@ $tm->addRow(function () use ($tm) {
             'name_1',
             'rex_prj_municipality_has_template',
             0,
-            0,
-            1,
             [
                 'filter' => 'status=1',
                 'notice' => 'Wenn keine Ortschaft ausgewählt ist die Karte für alle verfügbar',
             ]
         );
-        $tm->addMultiRelation('dedications', '###label.dedication###', 'rex_prj_dedication', 'name_1', '', 0, 0, 1);
+        $tm->addMultiRelation('dedications', '###label.dedication###', 'rex_prj_dedication', 'name_1', '', 0);
     });
     $tm->addColumn(4, function () use ($tm) {
         $tm->createStatusField();
