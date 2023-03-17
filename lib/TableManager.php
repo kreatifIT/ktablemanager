@@ -27,26 +27,20 @@ class TableManager
     }
 
     /**
-     * @param string    $name
-     * @param string    $label
-     * @param null|bool $search
-     * @param null|bool $listHidden
-     * @param array     $options
+     * @param string $name
+     * @param string $label
+     * @param array  $options
      * @return void
      */
     public function addCheckboxField(
         string $name,
         string $label,
-        ?bool $search = null,
-        ?bool $listHidden = null,
         array $options = []
     ): void {
         $this->addField(
             $name,
             'checkbox',
             $label,
-            $search,
-            $listHidden,
             array_merge([
                 'db_type' => 'tinyint(1)',
             ], $options)
@@ -54,26 +48,20 @@ class TableManager
     }
 
     /**
-     * @param string    $name
-     * @param string    $label
-     * @param null|bool $search
-     * @param null|bool $listHidden
-     * @param array     $options
+     * @param string $name
+     * @param string $label
+     * @param array  $options
      * @return void
      */
     public function addChoiceField(
         string $name,
         string $label,
-        ?bool $search = null,
-        ?bool $listHidden = null,
         array $options = []
     ): void {
         $this->addField(
             $name,
             'choice',
             $label,
-            $search,
-            $listHidden,
             array_merge([
                 'db_type' => 'text',
             ], $options)
@@ -118,26 +106,20 @@ class TableManager
     }
 
     /**
-     * @param string    $name
-     * @param string    $label
-     * @param null|bool $search
-     * @param null|bool $listHidden
-     * @param array     $options
+     * @param string $name
+     * @param string $label
+     * @param array  $options
      * @return void
      */
     public function addDataDumpField(
         string $name,
         string $label,
-        ?bool $search = null,
-        ?bool $listHidden = null,
         array $options = []
     ): void {
         $this->addField(
             $name,
             'data_dump',
             $label,
-            $search,
-            $listHidden,
             array_merge([
                 'db_type' => 'text',
             ], $options)
@@ -145,26 +127,20 @@ class TableManager
     }
 
     /**
-     * @param string    $name
-     * @param string    $label
-     * @param null|bool $search
-     * @param null|bool $listHidden
-     * @param array     $options
+     * @param string $name
+     * @param string $label
+     * @param array  $options
      * @return void
      */
     public function addDateTimeField(
         string $name,
         string $label,
-        ?bool $search = null,
-        ?bool $listHidden = null,
         array $options = []
     ): void {
         $this->addField(
             $name,
             'datestamp',
             $label,
-            $search,
-            $listHidden,
             array_merge([
                 'format' => 'Y-m-d H:i:s',
                 'db_type' => 'datetime',
@@ -173,26 +149,20 @@ class TableManager
     }
 
     /**
-     * @param string    $name
-     * @param string    $label
-     * @param null|bool $search
-     * @param null|bool $listHidden
-     * @param array     $options
+     * @param string $name
+     * @param string $label
+     * @param array  $options
      * @return void
      */
     public function addEmailField(
         string $name,
         string $label,
-        ?bool $search = null,
-        ?bool $listHidden = null,
         array $options = []
     ): void {
         $this->addField(
             $name,
             'email',
             $label,
-            $search,
-            $listHidden,
             array_merge([
                 'db_type' => 'varchar(191)',
             ], $options)
@@ -200,20 +170,16 @@ class TableManager
     }
 
     /**
-     * @param string    $name
-     * @param string    $type
-     * @param string    $label
-     * @param null|bool $search
-     * @param null|bool $listHidden
-     * @param array     $options
+     * @param string $name
+     * @param string $type
+     * @param string $label
+     * @param array  $options
      * @return void
      */
     public function addField(
         string $name,
         string $type,
         string $label,
-        ?bool $search,
-        ?bool $listHidden,
         array $options = []
     ) {
         $index = $this->getIndex($name);
@@ -221,6 +187,10 @@ class TableManager
         if (is_int($index)) {
             return;
         }
+        $options = array_merge([
+            'list_hidden' => 1,
+            'search' => 0,
+        ], $options);
 
         $this->fields[] = [
             'fieldName' => $name,
@@ -228,8 +198,6 @@ class TableManager
             'createValues' => [],
             'updateValues' => array_merge($options, [
                 'label' => $label,
-                'list_hidden' => $listHidden ?? true,
-                'search' => $search ?? false,
             ]),
         ];
     }
@@ -270,41 +238,38 @@ class TableManager
     }
 
     /**
-     * @param string    $name
-     * @param string    $label
-     * @param null|bool $search
-     * @param null|bool $listHidden
+     * @param string $name
+     * @param string $label
      * @return void
      */
-    public function addImageField(string $name, string $label, ?bool $search = null, ?bool $listHidden = null): void
+    public function addImageField(string $name, string $label, array $options = []): void
     {
-        $this->addField($name, 'be_media', $label, $search, $listHidden, [
-            'preview' => true,
-            'db_type' => 'varchar(191)',
-        ]);
+        $this->addField(
+            $name,
+            'be_media',
+            $label,
+            array_merge([
+                'preview' => true,
+                'db_type' => 'varchar(191)',
+            ], $options)
+        );
     }
 
     /**
-     * @param string    $name
-     * @param string    $label
-     * @param null|bool $search
-     * @param null|bool $listHidden
-     * @param array     $options
+     * @param string $name
+     * @param string $label
+     * @param array  $options
      * @return void
      */
     public function addIntegerField(
         string $name,
         string $label,
-        ?bool $search = null,
-        ?bool $listHidden = null,
         array $options = []
     ): void {
         $this->addField(
             $name,
             'integer',
             $label,
-            $search,
-            $listHidden,
             array_merge([
                 'db_type' => 'int',
             ], $options)
@@ -376,8 +341,6 @@ class TableManager
      * @param null|int    $defaultZoom
      * @param null|string $defaultPoint
      * @param null|string $type
-     * @param null|bool   $search
-     * @param null|bool   $listHidden
      * @return void
      */
     public function addMapField(
@@ -385,11 +348,9 @@ class TableManager
         string $label,
         ?int $defaultZoom = null,
         ?string $defaultPoint = null,
-        ?string $type = null,
-        ?bool $search = null,
-        ?bool $listHidden = null
+        ?string $type = null
     ): void {
-        $this->addField($name, 'map', $label, $search, $listHidden, [
+        $this->addField($name, 'map', $label, [
             'default_zoom' => $defaultZoom ?: 14,
             'default_point' => $defaultPoint ?: '46.4776762,11.33599039',
             'type' => $type ?: 'Point',
@@ -398,26 +359,20 @@ class TableManager
     }
 
     /**
-     * @param string    $name
-     * @param string    $label
-     * @param null|bool $search
-     * @param null|bool $listHidden
-     * @param array     $options
+     * @param string $name
+     * @param string $label
+     * @param array  $options
      * @return void
      */
     public function addMediaField(
         string $name,
         string $label,
-        ?bool $search = null,
-        ?bool $listHidden = null,
         array $options = []
     ): void {
         $this->addField(
             $name,
             'be_media',
             $label,
-            $search,
-            $listHidden,
             array_merge([
                 'preview' => false,
                 'db_type' => 'text',
@@ -432,8 +387,6 @@ class TableManager
      * @param string    $field
      * @param string    $relationTable
      * @param null|bool $required
-     * @param null|bool $search
-     * @param null|bool $listHidden
      * @param array     $options
      * @return void
      */
@@ -444,16 +397,12 @@ class TableManager
         string $field,
         string $relationTable,
         ?bool $required = null,
-        ?bool $search = null,
-        ?bool $listHidden = null,
         array $options = []
     ) {
         $this->addField(
             $name,
             'be_manager_relation',
             $label,
-            $search,
-            $listHidden,
             array_merge([
                 'db_type' => 'int',
                 'table' => $table,
@@ -494,26 +443,20 @@ class TableManager
     }
 
     /**
-     * @param string    $name
-     * @param string    $label
-     * @param null|bool $search
-     * @param null|bool $listHidden
-     * @param array     $options
+     * @param string $name
+     * @param string $label
+     * @param array  $options
      * @return void
      */
     public function addNumberField(
         string $name,
         string $label,
-        ?bool $search = null,
-        ?bool $listHidden = null,
         array $options = []
     ): void {
         $this->addField(
             $name,
             'number',
             $label,
-            $search,
-            $listHidden,
             array_merge([
                 'scale' => 2,
                 'precision' => 10,
@@ -567,8 +510,6 @@ class TableManager
      * @param string    $table
      * @param string    $field
      * @param null|bool $required
-     * @param null|bool $search
-     * @param null|bool $listHidden
      * @param array     $options
      * @return void
      */
@@ -578,16 +519,12 @@ class TableManager
         string $table,
         string $field,
         ?bool $required = null,
-        ?bool $search = null,
-        ?bool $listHidden = null,
         array $options = []
     ) {
         $this->addField(
             $name,
             'be_manager_relation',
             $label,
-            $search,
-            $listHidden,
             array_merge([
                 'db_type' => 'int',
                 'empty_option' => !$required ?? true,
@@ -599,28 +536,22 @@ class TableManager
     }
 
     /**
-     * @param string    $name
-     * @param string    $label
-     * @param string    $class
-     * @param null|bool $search
-     * @param null|bool $listHidden
-     * @param array     $options
+     * @param string $name
+     * @param string $label
+     * @param string $class
+     * @param array  $options
      * @return void
      */
     public function addTextareaField(
         string $name,
         string $label,
         string $class = '',
-        ?bool $search = null,
-        ?bool $listHidden = null,
         array $options = []
     ) {
         $this->addField(
             $name,
             'textarea',
             $label,
-            $search,
-            $listHidden,
             array_merge([
                 'db_type' => 'text',
                 'attributes' => json_encode([
@@ -642,26 +573,20 @@ class TableManager
     }
 
     /**
-     * @param string    $name
-     * @param string    $label
-     * @param null|bool $search
-     * @param null|bool $listHidden
-     * @param array     $options
+     * @param string $name
+     * @param string $label
+     * @param array  $options
      * @return void
      */
     public function addTextField(
         string $name,
         string $label,
-        ?bool $search = null,
-        ?bool $listHidden = null,
         array $options = []
     ): void {
         $this->addField(
             $name,
             'text',
             $label,
-            $search,
-            $listHidden,
             array_merge([
                 'db_type' => 'varchar(191)',
             ], $options)
