@@ -1,7 +1,24 @@
 # ktablemanager
 Erleichtert den schnellen Aufbau von YForm Tabellen über Code Skripte
 
-# BeispielCode
+# Setup
+##  1. Addon registrieren
+
+In der boot.php des betreffenden Addons (z.B. project) den Pfad zu den Tablemanager Skripten angeben
+
+```
+rex_extension::register('KREATIF_TABLEMANAGER_PATHS', static function (rex_extension_point $ep) {
+    $addon = rex_addon::get('project');
+    $paths = $ep->getSubject();
+    $paths[] = $addon->getPath('install/db_structure');
+    return $paths;
+}, rex_extension::LATE);
+```
+
+## 2. Im Redaxo Backend die YForm Tabelle anlegen
+(nur den Tabellen-Kopf, nicht die einzelnen Felder)
+
+## 3. Das Tabelmanager Skript aufbauen
 `project/install/db_structure/prj_card_template.php`
 
 ```
@@ -84,3 +101,7 @@ $tm->addRow(function () use ($tm) {
 
 $tm->synchronize();
 ```
+
+
+## 4. Skript ausführen
+Im Redaxo Backend die betreffende YForm Table öffnen und die Datensätze anzeigen. Dort gibt es einen neuen Button "synchronisieren". Mit Klick auf diesem Button wird nun das Tablemanager Skript aufgerufen und das betreffende YForm Feld-Schema überschrieben.
