@@ -9,6 +9,9 @@ use yform\usability\Usability;
 class TableManager
 {
     public bool $allowsInserts = false;
+    /**
+     * @var array<array<string>> $fields
+     */
     private array $fields = [];
     private string $table;
 
@@ -16,7 +19,13 @@ class TableManager
     private int $col = 0;
     private int $langTabs = 0;
     private int $fieldset = 0;
+    /**
+     * @var array<string> $paths
+     */
     private static array $paths = [];
+    /**
+     * @var array <TableManager> $tables
+     */
     private static array $tables = [];
 
     public function __construct(string $table)
@@ -27,9 +36,9 @@ class TableManager
     }
 
     /**
-     * @param string $name
-     * @param string $label
-     * @param array  $options
+     * @param string        $name
+     * @param string        $label
+     * @param array<string> $options
      * @return void
      */
     public function addCheckboxField(
@@ -48,9 +57,9 @@ class TableManager
     }
 
     /**
-     * @param string $name
-     * @param string $label
-     * @param array  $options
+     * @param string        $name
+     * @param string        $label
+     * @param array<string> $options
      * @return void
      */
     public function addChoiceField(
@@ -106,9 +115,9 @@ class TableManager
     }
 
     /**
-     * @param string $name
-     * @param string $label
-     * @param array  $options
+     * @param string        $name
+     * @param string        $label
+     * @param array<string> $options
      * @return void
      */
     public function addDataDumpField(
@@ -127,9 +136,9 @@ class TableManager
     }
 
     /**
-     * @param string $name
-     * @param string $label
-     * @param array  $options
+     * @param string        $name
+     * @param string        $label
+     * @param array<string> $options
      * @return void
      */
     public function addDateTimeField(
@@ -149,9 +158,9 @@ class TableManager
     }
 
     /**
-     * @param string $name
-     * @param string $label
-     * @param array  $options
+     * @param string        $name
+     * @param string        $label
+     * @param array<string> $options
      * @return void
      */
     public function addEmailField(
@@ -170,10 +179,10 @@ class TableManager
     }
 
     /**
-     * @param string $name
-     * @param string $type
-     * @param string $label
-     * @param array  $options
+     * @param string        $name
+     * @param string        $type
+     * @param string        $label
+     * @param array<string> $options
      * @return void
      */
     public function addField(
@@ -202,6 +211,12 @@ class TableManager
         ];
     }
 
+    /**
+     * @param string        $name
+     * @param string        $type
+     * @param array<string> $options
+     * @return void
+     */
     public function addValidateField(
         string $name,
         string $type,
@@ -238,8 +253,9 @@ class TableManager
     }
 
     /**
-     * @param string $name
-     * @param string $label
+     * @param string        $name
+     * @param string        $label
+     * @param array<string> $options
      * @return void
      */
     public function addImageField(string $name, string $label, array $options = []): void
@@ -256,9 +272,9 @@ class TableManager
     }
 
     /**
-     * @param string $name
-     * @param string $label
-     * @param array  $options
+     * @param string        $name
+     * @param string        $label
+     * @param array<string> $options
      * @return void
      */
     public function addIntegerField(
@@ -359,9 +375,9 @@ class TableManager
     }
 
     /**
-     * @param string $name
-     * @param string $label
-     * @param array  $options
+     * @param string        $name
+     * @param string        $label
+     * @param array<string> $options
      * @return void
      */
     public function addMediaField(
@@ -381,13 +397,13 @@ class TableManager
     }
 
     /**
-     * @param string    $name
-     * @param string    $label
-     * @param string    $table
-     * @param string    $field
-     * @param string    $relationTable
-     * @param null|bool $required
-     * @param array     $options
+     * @param string        $name
+     * @param string        $label
+     * @param string        $table
+     * @param string        $field
+     * @param string        $relationTable
+     * @param null|bool     $required
+     * @param array<string> $options
      * @return void
      */
     public function addMultiRelation(
@@ -443,9 +459,9 @@ class TableManager
     }
 
     /**
-     * @param string $name
-     * @param string $label
-     * @param array  $options
+     * @param string        $name
+     * @param string        $label
+     * @param array<string> $options
      * @return void
      */
     public function addNumberField(
@@ -505,12 +521,12 @@ class TableManager
     }
 
     /**
-     * @param string    $name
-     * @param string    $label
-     * @param string    $table
-     * @param string    $field
-     * @param null|bool $required
-     * @param array     $options
+     * @param string        $name
+     * @param string        $label
+     * @param string        $table
+     * @param string        $field
+     * @param null|bool     $required
+     * @param array<string> $options
      * @return void
      */
     public function addSingleRelation(
@@ -536,10 +552,10 @@ class TableManager
     }
 
     /**
-     * @param string $name
-     * @param string $label
-     * @param string $class
-     * @param array  $options
+     * @param string        $name
+     * @param string        $label
+     * @param string        $class
+     * @param array<string> $options
      * @return void
      */
     public function addTextareaField(
@@ -563,7 +579,7 @@ class TableManager
     }
 
     /**
-     * @param        $langId
+     * @param mixed  $langId
      * @param string $fieldName
      * @return void
      */
@@ -573,9 +589,9 @@ class TableManager
     }
 
     /**
-     * @param string $name
-     * @param string $label
-     * @param array  $options
+     * @param string        $name
+     * @param string        $label
+     * @param array<string> $options
      * @return void
      */
     public function addTextField(
@@ -655,9 +671,10 @@ class TableManager
     }
 
     /**
+     * @param int $default
      * @return void
      */
-    public function createStatusField($default = 1)
+    public function createStatusField(int $default = 1)
     {
         $this->fields[] = [
             'fieldName' => "status",
@@ -730,10 +747,10 @@ class TableManager
     }
 
     /**
-     * @param $fieldName
+     * @param string $fieldName
      * @return false|int|string
      */
-    public function getIndex($fieldName)
+    public function getIndex(string $fieldName)
     {
         return array_search($fieldName, array_column($this->fields, 'fieldName'));
     }
@@ -741,7 +758,7 @@ class TableManager
     /**
      * @param string   $field
      * @param callable $fields
-     * @param          $clangId
+     * @param mixed    $clangId
      * @throws \Exception
      * @return void
      */
@@ -854,16 +871,18 @@ class TableManager
     public static function extendTableManager(string $table): ?self
     {
         $tm = static::$tables[$table];
-        $tm->allowsInserts = true;
-        return $tm;
+        if ($tm instanceof static) {
+            return $tm;
+        }
+        return null;
     }
 
     /**
-     * @param \rex_extension_point $ep
+     * @param \rex_extension_point<\rex_extension> $ep
      * @throws \rex_exception
      * @return void
      */
-    public static function ext__addSynchTableButton(\rex_extension_point $ep)
+    public static function ext__addSynchTableButton(\rex_extension_point $ep): void
     {
         $synchParam = 'synch';
         $subject = $ep->getSubject();
