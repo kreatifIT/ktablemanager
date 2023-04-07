@@ -831,7 +831,7 @@ class TableManager
     public function synchronize(): void
     {
         foreach ($this->fields as $key => $field) {
-            $yformType = $field['yformType'] ?: 'value';
+            $yformType = isset($field['yformType']) ? $field['yformType'] : 'value';
             $fieldName = $field['fieldName'];
             $typeName = $field['typeName'];
             $createValues = $field['createValues'] ?: [];
