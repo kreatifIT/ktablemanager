@@ -10,7 +10,7 @@ class TableManager
 {
     public bool $allowsInserts = false;
     /**
-     * @var array<array<string>> $fields
+     * @var array<array> $fields
      */
     private array $fields = [];
     private string $table;
@@ -20,7 +20,7 @@ class TableManager
     private int $langTabs = 0;
     private int $fieldset = 0;
     /**
-     * @var array<string> $paths
+     * @var array $paths
      */
     private static array $paths = [];
     /**
@@ -38,7 +38,7 @@ class TableManager
     /**
      * @param string        $name
      * @param string        $label
-     * @param array<string> $options
+     * @param array $options
      * @return void
      */
     public function addCheckboxField(
@@ -59,7 +59,7 @@ class TableManager
     /**
      * @param string        $name
      * @param string        $label
-     * @param array<string> $options
+     * @param array $options
      * @return void
      */
     public function addChoiceField(
@@ -117,7 +117,7 @@ class TableManager
     /**
      * @param string        $name
      * @param string        $label
-     * @param array<string> $options
+     * @param array $options
      * @return void
      */
     public function addDataDumpField(
@@ -138,7 +138,7 @@ class TableManager
     /**
      * @param string        $name
      * @param string        $label
-     * @param array<string> $options
+     * @param array $options
      * @return void
      */
     public function addDateTimeField(
@@ -160,7 +160,7 @@ class TableManager
     /**
      * @param string        $name
      * @param string        $label
-     * @param array<string> $options
+     * @param array $options
      * @return void
      */
     public function addEmailField(
@@ -182,7 +182,7 @@ class TableManager
      * @param string        $name
      * @param string        $type
      * @param string        $label
-     * @param array<string> $options
+     * @param array $options
      * @return void
      */
     public function addField(
@@ -214,7 +214,7 @@ class TableManager
     /**
      * @param string        $name
      * @param string        $type
-     * @param array<string> $options
+     * @param array $options
      * @return void
      */
     public function addValidateField(
@@ -255,7 +255,7 @@ class TableManager
     /**
      * @param string        $name
      * @param string        $label
-     * @param array<string> $options
+     * @param array $options
      * @return void
      */
     public function addImageField(string $name, string $label, array $options = []): void
@@ -274,7 +274,7 @@ class TableManager
     /**
      * @param string        $name
      * @param string        $label
-     * @param array<string> $options
+     * @param array $options
      * @return void
      */
     public function addIntegerField(
@@ -377,7 +377,7 @@ class TableManager
     /**
      * @param string        $name
      * @param string        $label
-     * @param array<string> $options
+     * @param array $options
      * @return void
      */
     public function addMediaField(
@@ -403,7 +403,7 @@ class TableManager
      * @param string        $field
      * @param string        $relationTable
      * @param null|bool     $required
-     * @param array<string> $options
+     * @param array $options
      * @return void
      */
     public function addMultiRelation(
@@ -461,7 +461,7 @@ class TableManager
     /**
      * @param string        $name
      * @param string        $label
-     * @param array<string> $options
+     * @param array $options
      * @return void
      */
     public function addNumberField(
@@ -526,7 +526,7 @@ class TableManager
      * @param string        $table
      * @param string        $field
      * @param null|bool     $required
-     * @param array<string> $options
+     * @param array $options
      * @return void
      */
     public function addSingleRelation(
@@ -555,7 +555,7 @@ class TableManager
      * @param string        $name
      * @param string        $label
      * @param string        $class
-     * @param array<string> $options
+     * @param array $options
      * @return void
      */
     public function addTextareaField(
@@ -591,7 +591,7 @@ class TableManager
     /**
      * @param string        $name
      * @param string        $label
-     * @param array<string> $options
+     * @param array $options
      * @return void
      */
     public function addTextField(
