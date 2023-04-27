@@ -82,7 +82,7 @@ class TableManager
      * @param callable $fields
      * @return void
      */
-    public function addColumn(int $size, callable $fields)
+    public function addColumn(int $size, callable $fields): void
     {
         $this->col++;
         $this->fields[] = [
@@ -190,7 +190,7 @@ class TableManager
         string $type,
         string $label,
         array $options = []
-    ) {
+    ): void {
         $index = $this->getIndex($name);
         // exists already
         if (is_int($index)) {
@@ -221,7 +221,7 @@ class TableManager
         string $name,
         string $type,
         array $options = []
-    ) {
+    ): void {
         $this->fields[] = [
             'yformType' => 'validate',
             'fieldName' => $name,
@@ -235,7 +235,7 @@ class TableManager
      * @param string $label
      * @return void
      */
-    public function addFieldset(string $label)
+    public function addFieldset(string $label): void
     {
         $this->fields[] = [
             'fieldName' => "fieldset_{$this->fieldset}",
@@ -296,7 +296,7 @@ class TableManager
      * @param callable $fields
      * @return void
      */
-    public function addLangFields(callable $fields)
+    public function addLangFields(callable $fields): void
     {
         $this->langTabs++;
 
@@ -414,7 +414,7 @@ class TableManager
         string $relationTable,
         ?bool $required = null,
         array $options = []
-    ) {
+    ): void {
         $this->addField(
             $name,
             'be_manager_relation',
@@ -484,7 +484,7 @@ class TableManager
      * @param callable $fields
      * @return void
      */
-    public function addRow(callable $fields)
+    public function addRow(callable $fields): void
     {
         $this->col = 0;
         $this->row++;
@@ -536,7 +536,7 @@ class TableManager
         string $field,
         ?bool $required = null,
         array $options = []
-    ) {
+    ): void {
         $this->addField(
             $name,
             'be_manager_relation',
@@ -563,7 +563,7 @@ class TableManager
         string $label,
         string $class = '',
         array $options = []
-    ) {
+    ): void {
         $this->addField(
             $name,
             'textarea',
@@ -612,7 +612,7 @@ class TableManager
     /**
      * @return void
      */
-    public function createDateFields()
+    public function createDateFields(): void
     {
         $this->fields[] = [
             'fieldName' => "createdate",
@@ -653,7 +653,7 @@ class TableManager
      * @param string $fields
      * @return void
      */
-    public function createPriorityField(string $fields = 'name_1')
+    public function createPriorityField(string $fields = 'name_1'): void
     {
         $this->fields[] = [
             'fieldName' => "prio",
@@ -674,7 +674,7 @@ class TableManager
      * @param int $default
      * @return void
      */
-    public function createStatusField(int $default = 1)
+    public function createStatusField(int $default = 1): void
     {
         $this->fields[] = [
             'fieldName' => "status",
@@ -702,7 +702,7 @@ class TableManager
     /**
      * @return void
      */
-    public function createUserFields()
+    public function createUserFields(): void
     {
         $this->fields[] = [
             'fieldName' => "createuser",
@@ -739,7 +739,7 @@ class TableManager
      * @param callable $fields
      * @return void
      */
-    public function forEachLang(callable $fields)
+    public function forEachLang(callable $fields): void
     {
         foreach (\rex_clang::getAll() as $clang) {
             $fields($clang->getId());
@@ -804,7 +804,7 @@ class TableManager
      * @throws \rex_sql_exception
      * @return void
      */
-    public function removeField(string $name)
+    public function removeField(string $name): void
     {
         $index = $this->getIndex($name);
         if ($index === false) {
@@ -853,7 +853,7 @@ class TableManager
      * @throws \rex_sql_exception
      * @return void
      */
-    public static function clearFieldSchema(string $tableName)
+    public static function clearFieldSchema(string $tableName): void
     {
         $tableName = \rex::getTablePrefix().ltrim($tableName, 'rex_');
         $table = \rex_yform_manager_table::get($tableName);
