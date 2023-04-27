@@ -809,19 +809,17 @@ class TableManager
         $index = $this->getIndex($name);
         if ($index === false) {
             return;
-        } else {
-            $sql = \rex_sql::factory();
-            $sql->setTable('rex_yform_field');
-            $sql->setWhere('table_name = :tname AND name = :fname', [
-                'tname' => $this->table,
-                'fname' => $name,
-            ]);
-            $sql->delete();
-
-            unset($this->fields[$index]);
-            // workaround repair indexes
-            $this->fields = array_values($this->fields);
         }
+        $sql = \rex_sql::factory();
+        $sql->setTable('rex_yform_field');
+        $sql->setWhere('table_name = :tname AND name = :fname', [
+            'tname' => $this->table,
+            'fname' => $name,
+        ]);
+        $sql->delete();
+        unset($this->fields[$index]);
+        // workaround repair indexes
+        $this->fields = array_values($this->fields);
     }
 
     /**
