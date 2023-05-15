@@ -579,6 +579,35 @@ class TableManager
     }
 
     /**
+     * @param string $name
+     * @param string $label
+     * @param string $profile
+     * @param array $options
+     * @return void
+     */
+    public function addCk5EditorField(
+        string $name,
+        string $label,
+        string $profile = 'default',
+        array  $options = []
+    )
+    {
+        $this->addField(
+            $name,
+            'textarea',
+            $label,
+            array_merge([
+                'db_type' => 'text',
+                'attributes' => json_encode([
+                    'class' => 'cke5-editor',
+                    'data-profile' => $profile,
+                ]),
+            ], $options)
+        );
+    }
+
+
+    /**
      * @param mixed  $langId
      * @param string $fieldName
      * @return void
