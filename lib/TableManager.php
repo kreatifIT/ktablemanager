@@ -141,6 +141,29 @@ class TableManager
      * @param array $options
      * @return void
      */
+    public function addDatePickerField(
+        string $name,
+        string $label,
+        array $options = []
+    ): void {
+        $this->addField(
+            $name,
+            'date',
+            $label,
+            array_merge([
+                'format' => 'Y-m-d',
+                'widget' => 'input:date',
+                'db_type' => 'date',
+            ], $options)
+        );
+    }
+
+    /**
+     * @param string        $name
+     * @param string        $label
+     * @param array $options
+     * @return void
+     */
     public function addDateTimeField(
         string $name,
         string $label,
@@ -392,6 +415,23 @@ class TableManager
             array_merge([
                 'preview' => false,
                 'db_type' => 'text',
+            ], $options)
+        );
+    }
+
+    public function addImageListField(
+        string $name,
+        string $label,
+        array $options = []
+    ): void {
+        $this->addField(
+            $name,
+            'be_media',
+            $label,
+            array_merge([
+                'preview' => true,
+                'db_type' => 'text',
+                'multiple' => true,
             ], $options)
         );
     }
