@@ -19,17 +19,6 @@ use yform\usability\Usability;
 
 class TableManager
 {
-    public bool $allowsInserts = false;
-    /**
-     * @var array<array> $fields
-     */
-    private array $fields = [];
-    private string $table;
-
-    private int $row = 0;
-    private int $col = 0;
-    private int $langTabs = 0;
-    private int $fieldset = 0;
     /**
      * @var array $paths
      */
@@ -38,12 +27,98 @@ class TableManager
      * @var array <TableManager> $tables
      */
     private static array $tables = [];
+    public bool $allowsInserts = false;
+    /**
+     * @var array<array> $fields
+     */
+    private array $fields = [];
+    private string $table;
+    private int $row = 0;
+    private int $col = 0;
+    private int $langTabs = 0;
+    private int $fieldset = 0;
 
+    /**
+     * @throws rex_sql_exception
+     */
     public function __construct(string $table)
     {
         $this->table = rex::getTable(ltrim($table, 'rex_'));
         $this->clearFieldSchema($table);
         static::$tables[$table] = $this;
+    }
+
+    /**
+     * @param string $tableName
+     * @throws rex_sql_exception
+     * @return void
+     */
+    public static function clearFieldSchema(string $tableName): void
+    {
+        $tableName = rex::getTablePrefix().ltrim($tableName, 'rex_');
+        $table = rex_yform_manager_table::get($tableName);
+        $sql = rex_sql::factory();
+        $query = "DELETE FROM rex_yform_field WHERE table_name = :tname";
+        $sql->setQuery($query, ['tname' => $tableName]);
+        $table->deleteCache();
+        $sql->execute();
+    }
+
+    /**
+     * @param string $table
+     * @return null|static
+     */
+    public static function extendTableManager(string $table): ?self
+    {
+        $tm = static::$tables[$table];
+        if ($tm instanceof static) {
+            return $tm;
+        }
+        return null;
+    }
+
+    /**
+     * @param rex_extension_point<rex_extension> $ep
+     * @return void
+     *@throws rex_exception
+     */
+    public static function ext__addSynchTableButton(rex_extension_point $ep): void
+    {
+        $synchParam = 'synch';
+        $subject = $ep->getSubject();
+        $table = $ep->getParam('table');
+
+        $subject['table_links'][] = [
+            'label' => rex_i18n::msg('label.synch_table'),
+            'url' => rex_url::backendPage(
+                'yform/manager/data_edit',
+                ['table_name' => $table->getTableName(), $synchParam => 1]
+            ),
+            'attributes' => [
+                'class' => ['btn btn-default'],
+            ],
+        ];
+        if (rex_get($synchParam, 'int', 0)) {
+            $paths = TableManager::$paths;
+            $paths = rex_extension::registerPoint(new rex_extension_point('KREATIF_TABLEMANAGER_PATHS', $paths));
+            $found = false;
+            foreach ($paths as $path) {
+                $fileName = ltrim($table->getTableName(), 'rex_');
+                $fileName = $path.'/'.$fileName.'.php';
+
+                if (rex_file::get($fileName)) {
+                    include_once $fileName;
+                    $synchText = rex_i18n::msg('label.table_configuration_synched');
+                    echo "<div class='alert alert-success'>$synchText</div>";
+                    $found = true;
+                }
+            }
+            if (!$found) {
+                $fileNotFoundText = rex_i18n::msg('label.table_configuration_file_not_found');
+                echo "<div class='alert alert-danger'>$fileNotFoundText</div>";
+            }
+        }
+        $ep->setSubject($subject);
     }
 
     /**
@@ -65,6 +140,48 @@ class TableManager
                 'db_type' => 'tinyint(1)',
             ], $options)
         );
+    }
+
+    /**
+     * @param string        $name
+     * @param string        $type
+     * @param string        $label
+     * @param array $options
+     * @return void
+     */
+    public function addField(
+        string $name,
+        string $type,
+        string $label,
+        array $options = []
+    ): void {
+        $index = $this->getIndex($name);
+        // exists already
+        if (is_int($index)) {
+            return;
+        }
+        $options = array_merge([
+            'list_hidden' => 1,
+            'search' => 0,
+        ], $options);
+
+        $this->fields[] = [
+            'fieldName' => $name,
+            'typeName' => $type,
+            'createValues' => [],
+            'updateValues' => array_merge($options, [
+                'label' => $label,
+            ]),
+        ];
+    }
+
+    /**
+     * @param string $fieldName
+     * @return false|int|string
+     */
+    private function getIndex(string $fieldName): false|int|string
+    {
+        return array_search($fieldName, array_column($this->fields, 'fieldName'));
     }
 
     /**
@@ -210,39 +327,6 @@ class TableManager
                 'db_type' => 'varchar(191)',
             ], $options)
         );
-    }
-
-    /**
-     * @param string        $name
-     * @param string        $type
-     * @param string        $label
-     * @param array $options
-     * @return void
-     */
-    public function addField(
-        string $name,
-        string $type,
-        string $label,
-        array $options = []
-    ): void {
-        $index = $this->getIndex($name);
-        // exists already
-        if (is_int($index)) {
-            return;
-        }
-        $options = array_merge([
-            'list_hidden' => 1,
-            'search' => 0,
-        ], $options);
-
-        $this->fields[] = [
-            'fieldName' => $name,
-            'typeName' => $type,
-            'createValues' => [],
-            'updateValues' => array_merge($options, [
-                'label' => $label,
-            ]),
-        ];
     }
 
     /**
@@ -482,34 +566,6 @@ class TableManager
     }
 
     /**
-     * @param bool   $langId
-     * @param string $fieldName
-     * @return void
-     */
-    public function addNameField($langId = false, string $fieldName = 'name'): void
-    {
-        $listHidden = 0;
-        $search = 1;
-
-        if (is_int($langId)) {
-            $fieldName .= "_$langId";
-            $listHidden = $langId == 1 ? 0 : 1;
-            $search = $langId == 1 ? 1 : 0;
-        }
-
-        $this->fields[] = [
-            'fieldName' => $fieldName,
-            'typeName' => 'text',
-            'createValues' => [
-                'list_hidden' => $listHidden,
-                'search' => $search,
-                'label' => 'translate:label.designation',
-                'db_type' => 'varchar(191)',
-            ],
-        ];
-    }
-
-    /**
      * @param string        $name
      * @param string        $label
      * @param array $options
@@ -657,7 +713,6 @@ class TableManager
         );
     }
 
-
     /**
      * @param mixed  $langId
      * @param string $fieldName
@@ -666,6 +721,34 @@ class TableManager
     public function addTitleField($langId = false, string $fieldName = 'title'): void
     {
         $this->addNameField($langId, $fieldName);
+    }
+
+    /**
+     * @param bool   $langId
+     * @param string $fieldName
+     * @return void
+     */
+    public function addNameField($langId = false, string $fieldName = 'name'): void
+    {
+        $listHidden = 0;
+        $search = 1;
+
+        if (is_int($langId)) {
+            $fieldName .= "_$langId";
+            $listHidden = $langId == 1 ? 0 : 1;
+            $search = $langId == 1 ? 1 : 0;
+        }
+
+        $this->fields[] = [
+            'fieldName' => $fieldName,
+            'typeName' => 'text',
+            'createValues' => [
+                'list_hidden' => $listHidden,
+                'search' => $search,
+                'label' => 'translate:label.designation',
+                'db_type' => 'varchar(191)',
+            ],
+        ];
     }
 
     /**
@@ -827,12 +910,19 @@ class TableManager
     }
 
     /**
-     * @param string $fieldName
-     * @return false|int|string
+     * @param string   $field
+     * @param callable $fields
+     * @throws Exception
+     * @return void
      */
-    public function getIndex(string $fieldName)
+    public function insertAfterLangField(string $field, callable $fields): void
     {
-        return array_search($fieldName, array_column($this->fields, 'fieldName'));
+        if (!$this->allowsInserts) {
+            throw new Exception('Inserts are not allowed in this context');
+        }
+        foreach (rex_clang::getAll() as $clang) {
+            $this->insertAfter($field.'_'.$clang->getId(), $fields, $clang->getId());
+        }
     }
 
     /**
@@ -861,22 +951,6 @@ class TableManager
                 $indexFromField + 1
             )
         );
-    }
-
-    /**
-     * @param string   $field
-     * @param callable $fields
-     * @throws Exception
-     * @return void
-     */
-    public function insertAfterLangField(string $field, callable $fields): void
-    {
-        if (!$this->allowsInserts) {
-            throw new Exception('Inserts are not allowed in this context');
-        }
-        foreach (rex_clang::getAll() as $clang) {
-            $this->insertAfter($field.'_'.$clang->getId(), $fields, $clang->getId());
-        }
     }
 
     /**
@@ -924,78 +998,5 @@ class TableManager
         }
 
         rex_yform_manager_table_api::generateTableAndFields(rex_yform_manager_table::get($this->table));
-    }
-
-    /**
-     * @param string $tableName
-     * @throws rex_sql_exception
-     * @return void
-     */
-    public static function clearFieldSchema(string $tableName): void
-    {
-        $tableName = rex::getTablePrefix().ltrim($tableName, 'rex_');
-        $table = rex_yform_manager_table::get($tableName);
-        $sql = rex_sql::factory();
-        $query = "DELETE FROM rex_yform_field WHERE table_name = :tname";
-        $sql->setQuery($query, ['tname' => $tableName]);
-        $table->deleteCache();
-        $sql->execute();
-    }
-
-    /**
-     * @param string $table
-     * @return null|static
-     */
-    public static function extendTableManager(string $table): ?self
-    {
-        $tm = static::$tables[$table];
-        if ($tm instanceof static) {
-            return $tm;
-        }
-        return null;
-    }
-
-    /**
-     * @param rex_extension_point<rex_extension> $ep
-     * @return void
-     *@throws rex_exception
-     */
-    public static function ext__addSynchTableButton(rex_extension_point $ep): void
-    {
-        $synchParam = 'synch';
-        $subject = $ep->getSubject();
-        $table = $ep->getParam('table');
-
-        $subject['table_links'][] = [
-            'label' => rex_i18n::msg('label.synch_table'),
-            'url' => rex_url::backendPage(
-                'yform/manager/data_edit',
-                ['table_name' => $table->getTableName(), $synchParam => 1]
-            ),
-            'attributes' => [
-                'class' => ['btn btn-default'],
-            ],
-        ];
-        if (rex_get($synchParam, 'int', 0)) {
-            $paths = TableManager::$paths;
-            $paths = rex_extension::registerPoint(new rex_extension_point('KREATIF_TABLEMANAGER_PATHS', $paths));
-            $found = false;
-            foreach ($paths as $path) {
-                $fileName = ltrim($table->getTableName(), 'rex_');
-                $fileName = $path.'/'.$fileName.'.php';
-
-                if (rex_file::get($fileName)) {
-                    include_once $fileName;
-                    $synchText = rex_i18n::msg('label.table_configuration_synched');
-                    echo "<div class='alert alert-success'>$synchText</div>";
-                    $found = true;
-                }
-            }
-            if (!$found) {
-                $fileNotFoundText = rex_i18n::msg('label.table_configuration_file_not_found');
-                echo "<div class='alert alert-danger'>$fileNotFoundText</div>";
-            }
-        }
-        $ep->setSubject($subject);
     }
 }
