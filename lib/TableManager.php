@@ -2,8 +2,19 @@
 
 namespace KTableManager;
 
+use Exception;
 use rex;
 use rex_clang;
+use rex_exception;
+use rex_extension;
+use rex_extension_point;
+use rex_file;
+use rex_i18n;
+use rex_sql;
+use rex_sql_exception;
+use rex_url;
+use rex_yform_manager_table;
+use rex_yform_manager_table_api;
 use yform\usability\Usability;
 
 class TableManager
@@ -261,7 +272,7 @@ class TableManager
     public function addFieldset(string $label): void
     {
         $this->fields[] = [
-            'fieldName' => "fieldset_{$this->fieldset}",
+            'fieldName' => "fieldset_$this->fieldset",
             'typeName' => 'fieldset',
             'createValues' => [
                 'list_hidden' => 1,
@@ -324,7 +335,7 @@ class TableManager
         $this->langTabs++;
 
         $this->fields[] = [
-            'fieldName' => "tab_start_{$this->langTabs}",
+            'fieldName' => "tab_start_$this->langTabs",
             'typeName' => 'lang_tabs',
             'createValues' => [
                 'list_hidden' => 1,
@@ -342,7 +353,7 @@ class TableManager
                 $breakIndex = $idx - 1;
 
                 $this->fields[] = [
-                    'fieldName' => "tab_break_{$breakIndex}_{$this->langTabs}",
+                    'fieldName' => "tab_break_{$breakIndex}_$this->langTabs",
                     'typeName' => 'lang_tabs',
                     'createValues' => [
                         'list_hidden' => 1,
@@ -360,7 +371,7 @@ class TableManager
         }
 
         $this->fields[] = [
-            'fieldName' => "tab_end_{$this->langTabs}",
+            'fieldName' => "tab_end_$this->langTabs",
             'typeName' => 'lang_tabs',
             'createValues' => [
                 'list_hidden' => 1,
@@ -630,7 +641,7 @@ class TableManager
         string $label,
         string $profile = 'default',
         array  $options = []
-    )
+    ): void
     {
         $this->addField(
             $name,
@@ -810,7 +821,7 @@ class TableManager
      */
     public function forEachLang(callable $fields): void
     {
-        foreach (\rex_clang::getAll() as $clang) {
+        foreach (rex_clang::getAll() as $clang) {
             $fields($clang->getId());
         }
     }
@@ -828,13 +839,13 @@ class TableManager
      * @param string   $field
      * @param callable $fields
      * @param mixed    $clangId
-     * @throws \Exception
+     * @throws Exception
      * @return void
      */
-    public function insertAfter(string $field, callable $fields, $clangId = null)
+    public function insertAfter(string $field, callable $fields, $clangId = null): void
     {
         if (!$this->allowsInserts) {
-            throw new \Exception('Inserts are not allowed in this context');
+            throw new Exception('Inserts are not allowed in this context');
         }
 
         $fieldsCopy = $this->fields;
@@ -855,22 +866,22 @@ class TableManager
     /**
      * @param string   $field
      * @param callable $fields
-     * @throws \Exception
+     * @throws Exception
      * @return void
      */
-    public function insertAfterLangField(string $field, callable $fields)
+    public function insertAfterLangField(string $field, callable $fields): void
     {
         if (!$this->allowsInserts) {
-            throw new \Exception('Inserts are not allowed in this context');
+            throw new Exception('Inserts are not allowed in this context');
         }
-        foreach (\rex_clang::getAll() as $clang) {
+        foreach (rex_clang::getAll() as $clang) {
             $this->insertAfter($field.'_'.$clang->getId(), $fields, $clang->getId());
         }
     }
 
     /**
      * @param string $name
-     * @throws \rex_sql_exception
+     * @throws rex_sql_exception
      * @return void
      */
     public function removeField(string $name): void
@@ -879,7 +890,7 @@ class TableManager
         if ($index === false) {
             return;
         }
-        $sql = \rex_sql::factory();
+        $sql = rex_sql::factory();
         $sql->setTable('rex_yform_field');
         $sql->setWhere('table_name = :tname AND name = :fname', [
             'tname' => $this->table,
@@ -892,13 +903,13 @@ class TableManager
     }
 
     /**
-     * @throws \rex_sql_exception
+     * @throws rex_sql_exception
      * @return void
      */
     public function synchronize(): void
     {
         foreach ($this->fields as $key => $field) {
-            $yformType = isset($field['yformType']) ? $field['yformType'] : 'value';
+            $yformType = $field['yformType'] ?? 'value';
             $fieldName = $field['fieldName'];
             $typeName = $field['typeName'];
             $createValues = $field['createValues'] ?: [];
@@ -912,19 +923,19 @@ class TableManager
             }
         }
 
-        \rex_yform_manager_table_api::generateTableAndFields(\rex_yform_manager_table::get($this->table));
+        rex_yform_manager_table_api::generateTableAndFields(rex_yform_manager_table::get($this->table));
     }
 
     /**
      * @param string $tableName
-     * @throws \rex_sql_exception
+     * @throws rex_sql_exception
      * @return void
      */
     public static function clearFieldSchema(string $tableName): void
     {
-        $tableName = \rex::getTablePrefix().ltrim($tableName, 'rex_');
-        $table = \rex_yform_manager_table::get($tableName);
-        $sql = \rex_sql::factory();
+        $tableName = rex::getTablePrefix().ltrim($tableName, 'rex_');
+        $table = rex_yform_manager_table::get($tableName);
+        $sql = rex_sql::factory();
         $query = "DELETE FROM rex_yform_field WHERE table_name = :tname";
         $sql->setQuery($query, ['tname' => $tableName]);
         $table->deleteCache();
@@ -945,19 +956,19 @@ class TableManager
     }
 
     /**
-     * @param \rex_extension_point<\rex_extension> $ep
-     * @throws \rex_exception
+     * @param rex_extension_point<rex_extension> $ep
      * @return void
+     *@throws rex_exception
      */
-    public static function ext__addSynchTableButton(\rex_extension_point $ep): void
+    public static function ext__addSynchTableButton(rex_extension_point $ep): void
     {
         $synchParam = 'synch';
         $subject = $ep->getSubject();
         $table = $ep->getParam('table');
 
         $subject['table_links'][] = [
-            'label' => \rex_i18n::msg('label.synch_table'),
-            'url' => \rex_url::backendPage(
+            'label' => rex_i18n::msg('label.synch_table'),
+            'url' => rex_url::backendPage(
                 'yform/manager/data_edit',
                 ['table_name' => $table->getTableName(), $synchParam => 1]
             ),
@@ -967,21 +978,21 @@ class TableManager
         ];
         if (rex_get($synchParam, 'int', 0)) {
             $paths = TableManager::$paths;
-            $paths = \rex_extension::registerPoint(new \rex_extension_point('KREATIF_TABLEMANAGER_PATHS', $paths));
+            $paths = rex_extension::registerPoint(new rex_extension_point('KREATIF_TABLEMANAGER_PATHS', $paths));
             $found = false;
             foreach ($paths as $path) {
                 $fileName = ltrim($table->getTableName(), 'rex_');
                 $fileName = $path.'/'.$fileName.'.php';
 
-                if (\rex_file::get($fileName)) {
+                if (rex_file::get($fileName)) {
                     include_once $fileName;
-                    $synchText = \rex_i18n::msg('label.table_configuration_synched');
+                    $synchText = rex_i18n::msg('label.table_configuration_synched');
                     echo "<div class='alert alert-success'>$synchText</div>";
                     $found = true;
                 }
             }
             if (!$found) {
-                $fileNotFoundText = \rex_i18n::msg('label.table_configuration_file_not_found');
+                $fileNotFoundText = rex_i18n::msg('label.table_configuration_file_not_found');
                 echo "<div class='alert alert-danger'>$fileNotFoundText</div>";
             }
         }
