@@ -79,8 +79,8 @@ class TableManager
 
     /**
      * @param rex_extension_point<rex_extension> $ep
+     * @throws rex_exception
      * @return void
-     *@throws rex_exception
      */
     public static function ext__addSynchTableButton(rex_extension_point $ep): void
     {
@@ -122,9 +122,9 @@ class TableManager
     }
 
     /**
-     * @param string        $name
-     * @param string        $label
-     * @param array $options
+     * @param string $name
+     * @param string $label
+     * @param array  $options
      * @return void
      */
     public function addCheckboxField(
@@ -143,10 +143,10 @@ class TableManager
     }
 
     /**
-     * @param string        $name
-     * @param string        $type
-     * @param string        $label
-     * @param array $options
+     * @param string $name
+     * @param string $type
+     * @param string $label
+     * @param array  $options
      * @return void
      */
     public function addField(
@@ -179,15 +179,15 @@ class TableManager
      * @param string $fieldName
      * @return false|int|string
      */
-    private function getIndex(string $fieldName): false|int|string
+    private function getIndex(string $fieldName)
     {
         return array_search($fieldName, array_column($this->fields, 'fieldName'));
     }
 
     /**
-     * @param string        $name
-     * @param string        $label
-     * @param array $options
+     * @param string $name
+     * @param string $label
+     * @param array  $options
      * @return void
      */
     public function addChoiceField(
@@ -243,9 +243,9 @@ class TableManager
     }
 
     /**
-     * @param string        $name
-     * @param string        $label
-     * @param array $options
+     * @param string $name
+     * @param string $label
+     * @param array  $options
      * @return void
      */
     public function addDataDumpField(
@@ -264,9 +264,9 @@ class TableManager
     }
 
     /**
-     * @param string        $name
-     * @param string        $label
-     * @param array $options
+     * @param string $name
+     * @param string $label
+     * @param array  $options
      * @return void
      */
     public function addDatePickerField(
@@ -287,9 +287,9 @@ class TableManager
     }
 
     /**
-     * @param string        $name
-     * @param string        $label
-     * @param array $options
+     * @param string $name
+     * @param string $label
+     * @param array  $options
      * @return void
      */
     public function addDateTimeField(
@@ -309,9 +309,9 @@ class TableManager
     }
 
     /**
-     * @param string        $name
-     * @param string        $label
-     * @param array $options
+     * @param string $name
+     * @param string $label
+     * @param array  $options
      * @return void
      */
     public function addEmailField(
@@ -330,9 +330,9 @@ class TableManager
     }
 
     /**
-     * @param string        $name
-     * @param string        $type
-     * @param array $options
+     * @param string $name
+     * @param string $type
+     * @param array  $options
      * @return void
      */
     public function addValidateField(
@@ -371,9 +371,9 @@ class TableManager
     }
 
     /**
-     * @param string        $name
-     * @param string        $label
-     * @param array $options
+     * @param string $name
+     * @param string $label
+     * @param array  $options
      * @return void
      */
     public function addImageField(string $name, string $label, array $options = []): void
@@ -390,9 +390,9 @@ class TableManager
     }
 
     /**
-     * @param string        $name
-     * @param string        $label
-     * @param array $options
+     * @param string $name
+     * @param string $label
+     * @param array  $options
      * @return void
      */
     public function addIntegerField(
@@ -493,9 +493,9 @@ class TableManager
     }
 
     /**
-     * @param string        $name
-     * @param string        $label
-     * @param array $options
+     * @param string $name
+     * @param string $label
+     * @param array  $options
      * @return void
      */
     public function addMediaField(
@@ -532,13 +532,13 @@ class TableManager
     }
 
     /**
-     * @param string        $name
-     * @param string        $label
-     * @param string        $table
-     * @param string        $field
-     * @param string        $relationTable
-     * @param null|bool     $required
-     * @param array $options
+     * @param string    $name
+     * @param string    $label
+     * @param string    $table
+     * @param string    $field
+     * @param string    $relationTable
+     * @param null|bool $required
+     * @param array     $options
      * @return void
      */
     public function addMultiRelation(
@@ -566,9 +566,9 @@ class TableManager
     }
 
     /**
-     * @param string        $name
-     * @param string        $label
-     * @param array $options
+     * @param string $name
+     * @param string $label
+     * @param array  $options
      * @return void
      */
     public function addNumberField(
@@ -628,12 +628,12 @@ class TableManager
     }
 
     /**
-     * @param string        $name
-     * @param string        $label
-     * @param string        $table
-     * @param string        $field
-     * @param null|bool     $required
-     * @param array $options
+     * @param string    $name
+     * @param string    $label
+     * @param string    $table
+     * @param string    $field
+     * @param null|bool $required
+     * @param array     $options
      * @return void
      */
     public function addSingleRelation(
@@ -659,10 +659,10 @@ class TableManager
     }
 
     /**
-     * @param string        $name
-     * @param string        $label
-     * @param string        $class
-     * @param array $options
+     * @param string $name
+     * @param string $label
+     * @param string $class
+     * @param array  $options
      * @return void
      */
     public function addTextareaField(
@@ -689,16 +689,15 @@ class TableManager
      * @param string $name
      * @param string $label
      * @param string $profile
-     * @param array $options
+     * @param array  $options
      * @return void
      */
     public function addCk5EditorField(
         string $name,
         string $label,
         string $profile = 'default',
-        array  $options = []
-    ): void
-    {
+        array $options = []
+    ): void {
         $this->addField(
             $name,
             'textarea',
@@ -752,9 +751,9 @@ class TableManager
     }
 
     /**
-     * @param string        $name
-     * @param string        $label
-     * @param array $options
+     * @param string $name
+     * @param string $label
+     * @param array  $options
      * @return void
      */
     public function addTextField(
@@ -834,32 +833,30 @@ class TableManager
     }
 
     /**
-     * @param int $default
+     * @param array $options
      * @return void
      */
-    public function createStatusField(int $default = 1): void
+    public function createStatusField(array $options = []): void
     {
-        $this->fields[] = [
-            'fieldName' => "status",
-            'typeName' => 'choice',
-            'createValues' => [
+        $this->addField(
+            'status',
+            'choice',
+            'translate:status',
+            array_merge([
                 'list_hidden' => 1,
                 'search' => 0,
-                'label' => 'translate:status',
-            ],
-            'updateValues' => [
                 'db_type' => 'int',
                 'expanded' => 0,
                 'multiple' => 0,
-                'default' => $default,
+                'default' => 1,
                 'choices' => json_encode(
                     [
                         'translate:active' => 1,
                         'translate:inactive' => 0,
                     ]
                 ),
-            ],
-        ];
+            ], $options)
+        );
     }
 
     /**
