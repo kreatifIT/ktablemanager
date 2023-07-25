@@ -286,6 +286,48 @@ class TableManager
         );
     }
 
+    public function addDateTimePickerField(
+        string $name,
+        string $label,
+        array $options = []
+    ): void {
+        $this->addField(
+            $name,
+            'datetime',
+            $label,
+            array_merge([
+                'format' => 'Y-m-d H:i:s',
+                'widget' => 'input:text',
+                'attributes' => json_encode([
+                    'type' => 'datetime-local',
+                ]),
+                'db_type' => 'datetime',
+            ], $options)
+        );
+    }
+
+
+    /**
+     * @param string $name
+     * @param string $label
+     * @param array $options
+     * @return void
+     */
+    public function addLinkField(
+        string $name,
+        string $label,
+        array $options = []
+    ): void {
+        $this->addField(
+            $name,
+            'be_link',
+            $label,
+            array_merge([
+                'db_type' => 'int',
+            ], $options)
+        );
+    }
+
     /**
      * @param string $name
      * @param string $label
