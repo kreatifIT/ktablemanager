@@ -298,8 +298,9 @@ class TableManager
             array_merge([
                 'format' => 'Y-m-d H:i:s',
                 'widget' => 'input:text',
+                'current_date' => 1,
                 'attributes' => json_encode([
-                    'type' => 'datetime-local',
+                    'data-yform-tools-datetimepicker' => 'YYYY-MM-DD HH:mm:ss',
                 ]),
                 'db_type' => 'datetime',
             ], $options)
