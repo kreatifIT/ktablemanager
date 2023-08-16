@@ -28,6 +28,8 @@ class TableManager
      */
     private static array $tables = [];
     public bool $allowsInserts = false;
+    private ?array $tableDataset = null;
+    private array $config = [];
     /**
      * @var array<array> $fields
      */
@@ -45,23 +47,61 @@ class TableManager
     {
         $this->table = rex::getTable(ltrim($table, 'rex_'));
         $this->clearFieldSchema($table);
+        $this->setDefaultConfig();
         static::$tables[$table] = $this;
     }
 
     /**
      * @param string $tableName
-     * @throws rex_sql_exception
      * @return void
+     * @throws rex_sql_exception
      */
     public static function clearFieldSchema(string $tableName): void
     {
-        $tableName = rex::getTablePrefix().ltrim($tableName, 'rex_');
+        $tableName = rex::getTablePrefix() . ltrim($tableName, 'rex_');
         $table = rex_yform_manager_table::get($tableName);
         $sql = rex_sql::factory();
         $query = "DELETE FROM rex_yform_field WHERE table_name = :tname";
         $sql->setQuery($query, ['tname' => $tableName]);
         $table->deleteCache();
         $sql->execute();
+    }
+
+    /**
+     * @throws rex_sql_exception
+     */
+    private function getTableDataset(): array
+    {
+        if ($this->tableDataset === null) {
+            $this->tableDataset = rex_sql::factory()->setTable(rex::getTablePrefix() . 'yform_table')->setWhere('table_name = :name', [
+                'name' => $this->table])->select()->getArray()[0];
+        }
+        return $this->tableDataset ?? [];
+    }
+
+    private function setDefaultConfig()
+    {
+
+        $table = $this->getTableDataset();
+        $maxPrio = rex_sql::factory()->setTable(rex::getTablePrefix() . 'yform_table')->select('MAX(prio) as _max')->getArray()[0]['_max'];
+        $this->config = [
+            'table_name' => $this->table,
+            'list_amount' => 50,
+            'list_sortfield' => 'id',
+            'list_sortorder' => 'DESC',
+            'schema_overwrite' => 1,
+            'add_new' => 1,
+            'history' => 0,
+            'mass_edit' => 0,
+            'mass_deletion' => 0,
+            'export' => 0,
+            'import' => 0,
+            'createdate' => $table ? $table['createdate'] : date('Y-m-d H:i:s'),
+            'updatedate' => date('Y-m-d H:i:s'),
+            'createuser' => $table ? $table['createuser'] : rex::getUser()->getName(),
+            'updateuser' => rex::getUser()->getName(),
+            'prio' => $table ? $table['prio'] : $maxPrio + 1
+        ];
     }
 
     /**
@@ -79,8 +119,8 @@ class TableManager
 
     /**
      * @param rex_extension_point<rex_extension> $ep
-     * @throws rex_exception
      * @return void
+     * @throws rex_exception
      */
     public static function ext__addSynchTableButton(rex_extension_point $ep): void
     {
@@ -104,7 +144,7 @@ class TableManager
             $found = false;
             foreach ($paths as $path) {
                 $fileName = ltrim($table->getTableName(), 'rex_');
-                $fileName = $path.'/'.$fileName.'.php';
+                $fileName = $path . '/' . $fileName . '.php';
 
                 if (rex_file::get($fileName)) {
                     include_once $fileName;
@@ -121,40 +161,51 @@ class TableManager
         $ep->setSubject($subject);
     }
 
-    /**
-     * @param string $name
-     * @param string $label
-     * @param array  $options
-     * @return void
-     */
-    public function addCheckboxField(
-        string $name,
-        string $label,
-        array $options = []
-    ): void {
-        $this->addField(
-            $name,
-            'checkbox',
-            $label,
-            array_merge([
-                'db_type' => 'tinyint(1)',
-            ], $options)
-        );
+    public function setName(string $name): void
+    {
+        $this->config['name'] = $name;
+    }
+
+    public function setListAmount(int $listAmount): void
+    {
+        $this->config['list_amount'] = $listAmount;
+    }
+
+    public function setOrder(string $field, string $direction = 'DESC'): void
+    {
+        $this->config['list_sortfield'] = $field;
+        $this->config['list_sortorder'] = $direction;
+    }
+
+    public function setHidden(bool $hidden): void
+    {
+        $this->config['hidden'] = $hidden ? 1 : 0;
+    }
+
+    public function setAddNew(bool $addNew): void
+    {
+        $this->config['add_new'] = $addNew ? 1 : 0;
+    }
+
+    public function setHistory(bool $history): void
+    {
+        $this->config['history'] = $history ? 1 : 0;
     }
 
     /**
      * @param string $name
      * @param string $type
      * @param string $label
-     * @param array  $options
+     * @param array $options
      * @return void
      */
     public function addField(
         string $name,
         string $type,
         string $label,
-        array $options = []
-    ): void {
+        array  $options = []
+    ): void
+    {
         $index = $this->getIndex($name);
         // exists already
         if (is_int($index)) {
@@ -176,6 +227,28 @@ class TableManager
     }
 
     /**
+     * @param string $name
+     * @param string $label
+     * @param array $options
+     * @return void
+     */
+    public function addCheckboxField(
+        string $name,
+        string $label,
+        array  $options = []
+    ): void
+    {
+        $this->addField(
+            $name,
+            'checkbox',
+            $label,
+            array_merge([
+                'db_type' => 'tinyint(1)',
+            ], $options)
+        );
+    }
+
+    /**
      * @param string $fieldName
      * @return false|int|string
      */
@@ -187,14 +260,15 @@ class TableManager
     /**
      * @param string $name
      * @param string $label
-     * @param array  $options
+     * @param array $options
      * @return void
      */
     public function addChoiceField(
         string $name,
         string $label,
-        array $options = []
-    ): void {
+        array  $options = []
+    ): void
+    {
         $this->addField(
             $name,
             'choice',
@@ -206,7 +280,7 @@ class TableManager
     }
 
     /**
-     * @param int      $size
+     * @param int $size
      * @param callable $fields
      * @return void
      */
@@ -223,7 +297,7 @@ class TableManager
             ],
             'updateValues' => [
                 'db_type' => 'none',
-                'html' => '<div class="col-lg-'.$size.'">',
+                'html' => '<div class="col-lg-' . $size . '">',
             ],
         ];
         $fields();
@@ -245,14 +319,15 @@ class TableManager
     /**
      * @param string $name
      * @param string $label
-     * @param array  $options
+     * @param array $options
      * @return void
      */
     public function addDataDumpField(
         string $name,
         string $label,
-        array $options = []
-    ): void {
+        array  $options = []
+    ): void
+    {
         $this->addField(
             $name,
             'data_dump',
@@ -266,14 +341,15 @@ class TableManager
     /**
      * @param string $name
      * @param string $label
-     * @param array  $options
+     * @param array $options
      * @return void
      */
     public function addDatePickerField(
         string $name,
         string $label,
-        array $options = []
-    ): void {
+        array  $options = []
+    ): void
+    {
         $this->addField(
             $name,
             'date',
@@ -289,8 +365,9 @@ class TableManager
     public function addDateTimePickerField(
         string $name,
         string $label,
-        array $options = []
-    ): void {
+        array  $options = []
+    ): void
+    {
         $this->addField(
             $name,
             'datetime',
@@ -317,8 +394,9 @@ class TableManager
     public function addLinkField(
         string $name,
         string $label,
-        array $options = []
-    ): void {
+        array  $options = []
+    ): void
+    {
         $this->addField(
             $name,
             'be_link',
@@ -332,14 +410,15 @@ class TableManager
     /**
      * @param string $name
      * @param string $label
-     * @param array  $options
+     * @param array $options
      * @return void
      */
     public function addDateTimeField(
         string $name,
         string $label,
-        array $options = []
-    ): void {
+        array  $options = []
+    ): void
+    {
         $this->addField(
             $name,
             'datestamp',
@@ -354,14 +433,15 @@ class TableManager
     /**
      * @param string $name
      * @param string $label
-     * @param array  $options
+     * @param array $options
      * @return void
      */
     public function addEmailField(
         string $name,
         string $label,
-        array $options = []
-    ): void {
+        array  $options = []
+    ): void
+    {
         $this->addField(
             $name,
             'email',
@@ -375,14 +455,15 @@ class TableManager
     /**
      * @param string $name
      * @param string $type
-     * @param array  $options
+     * @param array $options
      * @return void
      */
     public function addValidateField(
         string $name,
         string $type,
-        array $options = []
-    ): void {
+        array  $options = []
+    ): void
+    {
         $this->fields[] = [
             'yformType' => 'validate',
             'fieldName' => $name,
@@ -416,7 +497,7 @@ class TableManager
     /**
      * @param string $name
      * @param string $label
-     * @param array  $options
+     * @param array $options
      * @return void
      */
     public function addImageField(string $name, string $label, array $options = []): void
@@ -435,14 +516,15 @@ class TableManager
     /**
      * @param string $name
      * @param string $label
-     * @param array  $options
+     * @param array $options
      * @return void
      */
     public function addIntegerField(
         string $name,
         string $label,
-        array $options = []
-    ): void {
+        array  $options = []
+    ): void
+    {
         $this->addField(
             $name,
             'integer',
@@ -513,20 +595,21 @@ class TableManager
     }
 
     /**
-     * @param string      $name
-     * @param string      $label
-     * @param null|int    $defaultZoom
+     * @param string $name
+     * @param string $label
+     * @param null|int $defaultZoom
      * @param null|string $defaultPoint
      * @param null|string $type
      * @return void
      */
     public function addMapField(
-        string $name,
-        string $label,
-        ?int $defaultZoom = null,
+        string  $name,
+        string  $label,
+        ?int    $defaultZoom = null,
         ?string $defaultPoint = null,
         ?string $type = null
-    ): void {
+    ): void
+    {
         $this->addField($name, 'map', $label, [
             'default_zoom' => $defaultZoom ?: 14,
             'default_point' => $defaultPoint ?: '46.4776762,11.33599039',
@@ -538,14 +621,15 @@ class TableManager
     /**
      * @param string $name
      * @param string $label
-     * @param array  $options
+     * @param array $options
      * @return void
      */
     public function addMediaField(
         string $name,
         string $label,
-        array $options = []
-    ): void {
+        array  $options = []
+    ): void
+    {
         $this->addField(
             $name,
             'be_media',
@@ -560,8 +644,9 @@ class TableManager
     public function addImageListField(
         string $name,
         string $label,
-        array $options = []
-    ): void {
+        array  $options = []
+    ): void
+    {
         $this->addField(
             $name,
             'be_media',
@@ -575,13 +660,13 @@ class TableManager
     }
 
     /**
-     * @param string    $name
-     * @param string    $label
-     * @param string    $table
-     * @param string    $field
-     * @param string    $relationTable
+     * @param string $name
+     * @param string $label
+     * @param string $table
+     * @param string $field
+     * @param string $relationTable
      * @param null|bool $required
-     * @param array     $options
+     * @param array $options
      * @return void
      */
     public function addMultiRelation(
@@ -590,9 +675,10 @@ class TableManager
         string $table,
         string $field,
         string $relationTable,
-        ?bool $required = null,
-        array $options = []
-    ): void {
+        ?bool  $required = null,
+        array  $options = []
+    ): void
+    {
         $this->addField(
             $name,
             'be_manager_relation',
@@ -611,14 +697,15 @@ class TableManager
     /**
      * @param string $name
      * @param string $label
-     * @param array  $options
+     * @param array $options
      * @return void
      */
     public function addNumberField(
         string $name,
         string $label,
-        array $options = []
-    ): void {
+        array  $options = []
+    ): void
+    {
         $this->addField(
             $name,
             'number',
@@ -671,12 +758,12 @@ class TableManager
     }
 
     /**
-     * @param string    $name
-     * @param string    $label
-     * @param string    $table
-     * @param string    $field
+     * @param string $name
+     * @param string $label
+     * @param string $table
+     * @param string $field
      * @param null|bool $required
-     * @param array     $options
+     * @param array $options
      * @return void
      */
     public function addSingleRelation(
@@ -684,9 +771,10 @@ class TableManager
         string $label,
         string $table,
         string $field,
-        ?bool $required = null,
-        array $options = []
-    ): void {
+        ?bool  $required = null,
+        array  $options = []
+    ): void
+    {
         $this->addField(
             $name,
             'be_manager_relation',
@@ -705,15 +793,16 @@ class TableManager
      * @param string $name
      * @param string $label
      * @param string $class
-     * @param array  $options
+     * @param array $options
      * @return void
      */
     public function addTextareaField(
         string $name,
         string $label,
         string $class = '',
-        array $options = []
-    ): void {
+        array  $options = []
+    ): void
+    {
         $this->addField(
             $name,
             'textarea',
@@ -721,7 +810,7 @@ class TableManager
             array_merge([
                 'db_type' => 'text',
                 'attributes' => json_encode([
-                    'class' => $class.' form-control',
+                    'class' => $class . ' form-control',
                     'rows' => 3,
                 ]),
             ], $options)
@@ -732,15 +821,16 @@ class TableManager
      * @param string $name
      * @param string $label
      * @param string $profile
-     * @param array  $options
+     * @param array $options
      * @return void
      */
     public function addCk5EditorField(
         string $name,
         string $label,
         string $profile = 'default',
-        array $options = []
-    ): void {
+        array  $options = []
+    ): void
+    {
         $this->addField(
             $name,
             'textarea',
@@ -756,7 +846,7 @@ class TableManager
     }
 
     /**
-     * @param mixed  $langId
+     * @param mixed $langId
      * @param string $fieldName
      * @return void
      */
@@ -766,7 +856,7 @@ class TableManager
     }
 
     /**
-     * @param bool   $langId
+     * @param bool $langId
      * @param string $fieldName
      * @return void
      */
@@ -796,14 +886,15 @@ class TableManager
     /**
      * @param string $name
      * @param string $label
-     * @param array  $options
+     * @param array $options
      * @return void
      */
     public function addTextField(
         string $name,
         string $label,
-        array $options = []
-    ): void {
+        array  $options = []
+    ): void
+    {
         $this->addField(
             $name,
             'text',
@@ -873,6 +964,8 @@ class TableManager
                 'search' => 0,
             ],
         ];
+        $this->config['list_sortfield'] = 'prio';
+        $this->config['list_sortorder'] = 'ASC';
     }
 
     /**
@@ -950,10 +1043,10 @@ class TableManager
     }
 
     /**
-     * @param string   $field
+     * @param string $field
      * @param callable $fields
-     * @throws Exception
      * @return void
+     * @throws Exception
      */
     public function insertAfterLangField(string $field, callable $fields): void
     {
@@ -961,16 +1054,16 @@ class TableManager
             throw new Exception('Inserts are not allowed in this context');
         }
         foreach (rex_clang::getAll() as $clang) {
-            $this->insertAfter($field.'_'.$clang->getId(), $fields, $clang->getId());
+            $this->insertAfter($field . '_' . $clang->getId(), $fields, $clang->getId());
         }
     }
 
     /**
-     * @param string   $field
+     * @param string $field
      * @param callable $fields
-     * @param mixed    $clangId
-     * @throws Exception
+     * @param mixed $clangId
      * @return void
+     * @throws Exception
      */
     public function insertAfter(string $field, callable $fields, $clangId = null): void
     {
@@ -995,8 +1088,8 @@ class TableManager
 
     /**
      * @param string $name
-     * @throws rex_sql_exception
      * @return void
+     * @throws rex_sql_exception
      */
     public function removeField(string $name): void
     {
@@ -1016,12 +1109,28 @@ class TableManager
         $this->fields = array_values($this->fields);
     }
 
+    private function synchTable(): void
+    {
+        $sql = rex_sql::factory();
+        $sql->setTable(rex::getTablePrefix() . 'yform_table');
+        $sql->setValues($this->config);
+        if($this->getTableDataset()) {
+            $sql->setWhere('id = :id', [
+                'id' => $this->getTableDataset()['id']
+            ]);
+            $sql->update();
+        } else {
+            $sql->insert();
+        }
+    }
+
     /**
-     * @throws rex_sql_exception
      * @return void
+     * @throws rex_sql_exception
      */
     public function synchronize(): void
     {
+        $this->synchTable();
         foreach ($this->fields as $key => $field) {
             $yformType = $field['yformType'] ?? 'value';
             $fieldName = $field['fieldName'];
