@@ -1,10 +1,12 @@
 <?php
 
-use KTableManager\TableManager;
+use KTableManager\Extensions;
+
 if (!rex::isBackend()) {
     return;
 }
 if (!rex::getUser()) {
     return;
 }
-rex_extension::register('YFORM_DATA_LIST_LINKS', [TableManager::class, 'ext__addSynchTableButton']);
+
+Extensions::init();

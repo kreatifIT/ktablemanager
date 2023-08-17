@@ -20,10 +20,6 @@ use yform\usability\Usability;
 class TableManager
 {
     /**
-     * @var array $paths
-     */
-    private static array $paths = [];
-    /**
      * @var array <TableManager> $tables
      */
     private static array $tables = [];
@@ -46,26 +42,11 @@ class TableManager
     public function __construct(string $table)
     {
         $this->table = rex::getTable(ltrim($table, 'rex_'));
-        $this->clearFieldSchema($table);
+        Table::clearFieldSchema($table);
         $this->setDefaultConfig();
         static::$tables[$table] = $this;
     }
 
-    /**
-     * @param string $tableName
-     * @return void
-     * @throws rex_sql_exception
-     */
-    public static function clearFieldSchema(string $tableName): void
-    {
-        $tableName = rex::getTablePrefix() . ltrim($tableName, 'rex_');
-        $table = rex_yform_manager_table::get($tableName);
-        $sql = rex_sql::factory();
-        $query = "DELETE FROM rex_yform_field WHERE table_name = :tname";
-        $sql->setQuery($query, ['tname' => $tableName]);
-        $table->deleteCache();
-        $sql->execute();
-    }
 
     /**
      * @throws rex_sql_exception
@@ -73,17 +54,19 @@ class TableManager
     private function getTableDataset(): array
     {
         if ($this->tableDataset === null) {
-            $this->tableDataset = rex_sql::factory()->setTable(rex::getTablePrefix() . 'yform_table')->setWhere('table_name = :name', [
-                'name' => $this->table])->select()->getArray()[0];
+            $this->tableDataset = Table::getTableDataset($this->table);
         }
         return $this->tableDataset ?? [];
     }
 
-    private function setDefaultConfig()
+    /**
+     * @throws rex_sql_exception
+     */
+    private function setDefaultConfig(): void
     {
 
         $table = $this->getTableDataset();
-        $maxPrio = rex_sql::factory()->setTable(rex::getTablePrefix() . 'yform_table')->select('MAX(prio) as _max')->getArray()[0]['_max'];
+        $maxPrio = Table::getHighestPrio();
         $this->config = [
             'table_name' => $this->table,
             'list_amount' => 50,
@@ -115,50 +98,6 @@ class TableManager
             return $tm;
         }
         return null;
-    }
-
-    /**
-     * @param rex_extension_point<rex_extension> $ep
-     * @return void
-     * @throws rex_exception
-     */
-    public static function ext__addSynchTableButton(rex_extension_point $ep): void
-    {
-        $synchParam = 'synch';
-        $subject = $ep->getSubject();
-        $table = $ep->getParam('table');
-
-        $subject['table_links'][] = [
-            'label' => rex_i18n::msg('label.synch_table'),
-            'url' => rex_url::backendPage(
-                'yform/manager/data_edit',
-                ['table_name' => $table->getTableName(), $synchParam => 1]
-            ),
-            'attributes' => [
-                'class' => ['btn btn-default'],
-            ],
-        ];
-        if (rex_get($synchParam, 'int', 0)) {
-            $paths = TableManager::$paths;
-            $paths = rex_extension::registerPoint(new rex_extension_point('KREATIF_TABLEMANAGER_PATHS', $paths));
-            $found = false;
-            foreach ($paths as $path) {
-                $fileName = ltrim($table->getTableName(), 'rex_');
-                $fileName = $path . '/' . $fileName . '.php';
-
-                if (rex_file::get($fileName)) {
-                    include_once $fileName;
-                    $synchText = rex_i18n::msg('label.table_configuration_synched');
-                    echo "<div class='alert alert-success'>$synchText</div>";
-                    $found = true;
-                }
-            }
-            if (!$found) {
-                $fileNotFoundText = rex_i18n::msg('label.table_configuration_file_not_found');
-                echo "<div class='alert alert-danger'>$fileNotFoundText</div>";
-            }
-        }
-        $ep->setSubject($subject);
     }
 
     public function setName(string $name): void
@@ -252,7 +191,7 @@ class TableManager
      * @param string $fieldName
      * @return false|int|string
      */
-    private function getIndex(string $fieldName)
+    private function getIndex(string $fieldName): bool|int|string
     {
         return array_search($fieldName, array_column($this->fields, 'fieldName'));
     }
@@ -1053,9 +992,9 @@ class TableManager
         if (!$this->allowsInserts) {
             throw new Exception('Inserts are not allowed in this context');
         }
-        foreach (rex_clang::getAll() as $clang) {
-            $this->insertAfter($field . '_' . $clang->getId(), $fields, $clang->getId());
-        }
+        $this->forEachLang(function ($clangId) use ($field, $fields) {
+            $this->insertAfter($field . '_' . $clangId, $fields, $clangId);
+        });
     }
 
     /**
@@ -1097,31 +1036,10 @@ class TableManager
         if ($index === false) {
             return;
         }
-        $sql = rex_sql::factory();
-        $sql->setTable('rex_yform_field');
-        $sql->setWhere('table_name = :tname AND name = :fname', [
-            'tname' => $this->table,
-            'fname' => $name,
-        ]);
-        $sql->delete();
+        Table::removeField($this->table, $name);
         unset($this->fields[$index]);
         // workaround repair indexes
         $this->fields = array_values($this->fields);
-    }
-
-    private function synchTable(): void
-    {
-        $sql = rex_sql::factory();
-        $sql->setTable(rex::getTablePrefix() . 'yform_table');
-        $sql->setValues($this->config);
-        if($this->getTableDataset()) {
-            $sql->setWhere('id = :id', [
-                'id' => $this->getTableDataset()['id']
-            ]);
-            $sql->update();
-        } else {
-            $sql->insert();
-        }
     }
 
     /**
@@ -1130,22 +1048,7 @@ class TableManager
      */
     public function synchronize(): void
     {
-        $this->synchTable();
-        foreach ($this->fields as $key => $field) {
-            $yformType = $field['yformType'] ?? 'value';
-            $fieldName = $field['fieldName'];
-            $typeName = $field['typeName'];
-            $createValues = $field['createValues'] ?: [];
-            $updateValues = $field['updateValues'] ?: [];
-            $updateValues = array_merge($updateValues, ['prio' => $key]);
-
-            if ('validate' == $yformType) {
-                Usability::ensureValidateField($this->table, $fieldName, $typeName, $createValues, $updateValues);
-            } else {
-                Usability::ensureValueField($this->table, $fieldName, $typeName, $createValues, $updateValues);
-            }
-        }
-
-        rex_yform_manager_table_api::generateTableAndFields(rex_yform_manager_table::get($this->table));
+        Table::ensureTableConfig($this->table, $this->config);
+        Table::ensureFields($this->table, $this->fields);
     }
 }
