@@ -31,7 +31,10 @@ class TableManager
     private array $fields = [];
     private string $table;
     private int $row = 0;
+
+    private array $parentRows = [];
     private int $col = 0;
+    private array $parentCols = [];
     private int $langTabs = 0;
     private int $fieldset = 0;
 
@@ -221,6 +224,7 @@ class TableManager
     public function addColumn(int $size, callable $fields): void
     {
         $this->col++;
+        $this->parentCols[] = $this->col;
         $this->fields[] = [
             'fieldName' => "row{$this->row}__col_{$this->col}_start",
             'typeName' => 'html',
@@ -235,8 +239,10 @@ class TableManager
             ],
         ];
         $fields();
+        $currentCol = array_pop($this->parentCols);
+        $lastRow = end($this->parentRows);
         $this->fields[] = [
-            'fieldName' => "row{$this->row}__col_{$this->col}_end",
+            'fieldName' => "row{$lastRow}__col_{$currentCol}_end",
             'typeName' => 'html',
             'createValues' => [
                 'list_hidden' => 1,
@@ -659,6 +665,7 @@ class TableManager
     {
         $this->col = 0;
         $this->row++;
+        $this->parentRows[] = $this->row;
 
         $this->fields[] = [
             'fieldName' => "row{$this->row}_start",
@@ -676,8 +683,9 @@ class TableManager
 
         $fields();
 
+        $currentRow = array_pop($this->parentRows);
         $this->fields[] = [
-            'fieldName' => "row{$this->row}_end",
+            'fieldName' => "row{$currentRow}_end",
             'typeName' => 'html',
             'createValues' => [
                 'list_hidden' => 1,
