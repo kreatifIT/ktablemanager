@@ -4,3 +4,9 @@ label.ktablemanager.name = Name
 label.ktablemanager.table_not_created_yet = Tabelle noch nicht erstellt
 label.ktablemanager.actions = Aktionen
 label.ktablemanager.synch_table = Synchronisieren
+label.ktablemanager.table_configuration_file_not_found = Die Konfigurationsdatei für diese Tabelle konnte nicht gefunden werden.
+label.ktablemanager.table_configuration_synched = Die Tabelle wurde erfolgreich synchronisiert.
+label.ktablemanager.table_configuration_synched_specific = Die Tabelle "{{TABLE}}" wurde erfolgreich synchronisiert.
+label.ktablemanager.table_configuration_file_not_found_specific = Die Konfigurationsdatei konnte nicht gefunden werden für die Tabelle "{{TABLE}}" .
+
+

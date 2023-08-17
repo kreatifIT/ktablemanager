@@ -47,9 +47,6 @@ class TableManager
     }
 
 
-    /**
-     * @throws rex_sql_exception
-     */
     private function setDefaultConfig(): void
     {
 

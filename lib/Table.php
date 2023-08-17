@@ -11,6 +11,9 @@ use yform\usability\Usability;
 
 class Table
 {
+    /**
+     * @throws rex_sql_exception
+     */
     public static function clearFieldSchema(string $tableName): void
     {
         $tableName = rex::getTablePrefix() . ltrim($tableName, 'rex_');

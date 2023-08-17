@@ -9,9 +9,8 @@ use rex_file;
 class Discovery
 {
     /**
-     * @var array $paths
+     * @return array
      */
-
     public static function getTableManagerPaths(): array
     {
         return rex_extension::registerPoint(new rex_extension_point('KREATIF_TABLEMANAGER_PATHS', []));
@@ -58,6 +57,4 @@ class Discovery
         }
         return $files;
     }
-
-
 }
