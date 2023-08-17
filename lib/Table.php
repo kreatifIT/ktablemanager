@@ -18,43 +18,27 @@ class Table
         $sql = rex_sql::factory();
         $query = "DELETE FROM rex_yform_field WHERE table_name = :tname";
         $sql->setQuery($query, ['tname' => $tableName]);
-        $table->deleteCache();
+        $table?->deleteCache();
         $sql->execute();
     }
 
     /**
      * @throws rex_sql_exception
      */
-    public static function getTableDataset(string $table): array
-    {
-        return rex_sql::factory()->setTable(rex::getTablePrefix() . 'yform_table')->setWhere('table_name = :name', [
-            'name' => $table])->select()->getArray()[0];
-    }
-
-    /**
-     * @throws rex_sql_exception
-     */
-    public static function getHighestPrio(): int
-    {
-        return rex_sql::factory()->setTable(rex::getTablePrefix() . 'yform_table')->select('MAX(prio) as _max')->getArray()[0]['_max'];
-    }
-
-    /**
-     * @throws rex_sql_exception
-     */
     public static function ensureTableConfig(string $table, array $config): void {
-        $tableDataset = self::getTableDataset($table);
+        $tableDataset = rex_yform_manager_table::get($table);
         $sql = rex_sql::factory();
         $sql->setTable(rex::getTablePrefix() . 'yform_table');
         $sql->setValues($config);
         if($tableDataset) {
             $sql->setWhere('id = :id', [
-                'id' => $tableDataset['id']
+                'id' => $tableDataset->getId()
             ]);
             $sql->update();
         } else {
             $sql->insert();
         }
+        rex_yform_manager_table::deleteCache();
     }
 
     /**

@@ -12,9 +12,9 @@ class Discovery
      * @var array $paths
      */
 
-    public static function getTableManagerFilenames(): array
+    public static function getTableManagerPaths(): array
     {
-        return rex_extension::registerPoint(new rex_extension_point('KREATIF_TABLEMANAGER_PATHS', $paths));
+        return rex_extension::registerPoint(new rex_extension_point('KREATIF_TABLEMANAGER_PATHS', []));
     }
 
     /**
@@ -24,11 +24,11 @@ class Discovery
     public static function getTableManagerFiles(string $tableName): array
     {
         $files = [];
-        foreach (self::getTableManagerFilenames() as $path) {
+        foreach (self::getTableManagerPaths() as $path) {
             $fileName = ltrim($tableName, 'rex_');
             $fileName = $path . '/' . $fileName . '.php';
 
-            if ($file = rex_file::get($fileName)) {
+            if (rex_file::get($fileName)) {
                 $files[] = $fileName;
             }
         }
@@ -46,5 +46,18 @@ class Discovery
         }
         return false;
     }
+
+    public static function getPossibleTableManagers(): array
+    {
+        $files = [];
+        foreach (self::getTableManagerPaths() as $path) {
+            $_files = \rex_finder::factory($path)->filesOnly()->getIterator();
+            foreach($_files as $file) {
+                $files[] = \rex::getTablePrefix() . preg_replace('/\.php/', '', $file->getFilename());
+            }
+        }
+        return $files;
+    }
+
 
 }

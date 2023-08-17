@@ -7,3 +7,8 @@ requires:
     packages:
         yform: '>=4.0'
         yform_usability: ^2.0
+
+page:
+    title: translate:title
+    perm: ktablemanager[]
+    icon: rex-icon fa-gear

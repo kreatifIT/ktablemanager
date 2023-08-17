@@ -24,7 +24,6 @@ class TableManager
      */
     private static array $tables = [];
     public bool $allowsInserts = false;
-    private ?array $tableDataset = null;
     private array $config = [];
     /**
      * @var array<array> $fields
@@ -51,24 +50,14 @@ class TableManager
     /**
      * @throws rex_sql_exception
      */
-    private function getTableDataset(): array
-    {
-        if ($this->tableDataset === null) {
-            $this->tableDataset = Table::getTableDataset($this->table);
-        }
-        return $this->tableDataset ?? [];
-    }
-
-    /**
-     * @throws rex_sql_exception
-     */
     private function setDefaultConfig(): void
     {
 
-        $table = $this->getTableDataset();
-        $maxPrio = Table::getHighestPrio();
+        $table = rex_yform_manager_table::get($this->table);
+        $maxPrio = rex_yform_manager_table::getMaximumTablePrio();
         $this->config = [
             'table_name' => $this->table,
+            'name' => $this->table,
             'list_amount' => 50,
             'list_sortfield' => 'id',
             'list_sortorder' => 'DESC',
@@ -76,13 +65,15 @@ class TableManager
             'add_new' => 1,
             'history' => 0,
             'mass_edit' => 0,
+            'hidden' => 0,
+            'status' => 1,
             'mass_deletion' => 0,
             'export' => 0,
             'import' => 0,
             'createdate' => $table ? $table['createdate'] : date('Y-m-d H:i:s'),
             'updatedate' => date('Y-m-d H:i:s'),
-            'createuser' => $table ? $table['createuser'] : rex::getUser()->getName(),
-            'updateuser' => rex::getUser()->getName(),
+            'createuser' => $table ? $table['createuser'] : rex::getUser()->getLogin(),
+            'updateuser' => rex::getUser()->getLogin(),
             'prio' => $table ? $table['prio'] : $maxPrio + 1
         ];
     }

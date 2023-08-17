@@ -1,0 +1,6 @@
+title = kTableManager
+label.ktablemanager.table_name = Tabellenname
+label.ktablemanager.name = Name
+label.ktablemanager.table_not_created_yet = Tabelle noch nicht erstellt
+label.ktablemanager.actions = Aktionen
+label.ktablemanager.synch_table = Synchronisieren
