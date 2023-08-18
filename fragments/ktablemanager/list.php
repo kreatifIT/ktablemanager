@@ -1,7 +1,12 @@
 <?php
+/**
+ * @var rex_fragment $this
+ * @psalm-scope-this rex_fragment
+ */
 
+/** @var array $tableManagers */
 $tableManagers = $this->getVar('managers');
-
+$tableDataset = null;
 ?>
 
 <div class="panel panel-default">

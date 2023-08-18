@@ -5,7 +5,6 @@ namespace KTableManager;
 use rex_exception;
 use rex_extension;
 use rex_extension_point;
-use rex_file;
 use rex_i18n;
 use rex_url;
 

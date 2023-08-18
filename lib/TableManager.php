@@ -5,17 +5,8 @@ namespace KTableManager;
 use Exception;
 use rex;
 use rex_clang;
-use rex_exception;
-use rex_extension;
-use rex_extension_point;
-use rex_file;
-use rex_i18n;
-use rex_sql;
 use rex_sql_exception;
-use rex_url;
 use rex_yform_manager_table;
-use rex_yform_manager_table_api;
-use yform\usability\Usability;
 
 class TableManager
 {
