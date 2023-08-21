@@ -60,6 +60,7 @@ class TableManager
                 'list_sortorder' => 'DESC',
                 'schema_overwrite' => 1,
                 'add_new' => 1,
+                'search' => 1,
                 'history' => 0,
                 'mass_edit' => 0,
                 'hidden' => 0,
@@ -118,6 +119,11 @@ class TableManager
     public function setHistory(bool $history): void
     {
         $this->config['history'] = $history ? 1 : 0;
+    }
+
+    public function setSearch(bool $search): void
+    {
+        $this->config['search'] = $search ? 1 : 0;
     }
 
     /**
