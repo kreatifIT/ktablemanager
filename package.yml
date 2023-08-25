@@ -1,6 +1,7 @@
 package: ktablemanager
-author: Kreatif GmbH
-version: '0.0.1'
+author: Daniel Planötscher, Michael Rainer
+supportpage: https://github.com/kreatifIT/ktablemanager/
+version: '1.0.0'
 
 requires:
     redaxo: '>=5.14'
