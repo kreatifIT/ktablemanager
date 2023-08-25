@@ -45,7 +45,7 @@ class TableManager
     {
 
         $table = rex_yform_manager_table::get($this->table);
-        if($table) {
+        if ($table) {
             $this->config = [
                 'table_name' => $this->table,
                 'updatedate' => date('Y-m-d H:i:s'),
@@ -223,7 +223,7 @@ class TableManager
         $this->col++;
         $this->parentCols[] = $this->col;
         $this->fields[] = [
-            'fieldName' => "row{$this->row}__col_{$this->col}_start",
+            'fieldName' => $this->retrieveColStartFieldName($this->row, $this->col),
             'typeName' => 'html',
             'createValues' => [
                 'list_hidden' => 1,
@@ -232,14 +232,14 @@ class TableManager
             ],
             'updateValues' => [
                 'db_type' => 'none',
-                'html' => '<div class="col-lg-' . $size . '">',
+                'html' => '<div class="col-lg-' . $size . '" data-row="' . $this->row . '" data-col="' . $this->col . '">',
             ],
         ];
         $fields();
         $currentCol = array_pop($this->parentCols);
         $lastRow = end($this->parentRows);
         $this->fields[] = [
-            'fieldName' => "row{$lastRow}__col_{$currentCol}_end",
+            'fieldName' => $this->retrieveColEndFieldName($lastRow, $currentCol),
             'typeName' => 'html',
             'createValues' => [
                 'list_hidden' => 1,
@@ -665,7 +665,7 @@ class TableManager
         $this->parentRows[] = $this->row;
 
         $this->fields[] = [
-            'fieldName' => "row{$this->row}_start",
+            'fieldName' => $this->retrieveRowStartFieldName($this->row),
             'typeName' => 'html',
             'createValues' => [
                 'list_hidden' => 1,
@@ -674,7 +674,7 @@ class TableManager
             ],
             'updateValues' => [
                 'db_type' => 'none',
-                'html' => '<div class="row">',
+                'html' => '<div class="row" data-row="' . $this->row . '">',
             ],
         ];
 
@@ -682,7 +682,7 @@ class TableManager
 
         $currentRow = array_pop($this->parentRows);
         $this->fields[] = [
-            'fieldName' => "row{$currentRow}_end",
+            'fieldName' => $this->retrieveRowEndFieldName($currentRow),
             'typeName' => 'html',
             'createValues' => [
                 'list_hidden' => 1,
@@ -1026,6 +1026,22 @@ class TableManager
     }
 
     /**
+     * @param int $rowIndex
+     * @param callable $fields
+     * @param mixed $clangId
+     * @return void
+     * @throws Exception
+     */
+    public function insertAfterRow(int $rowIndex, callable $fields, $clangId = null): void
+    {
+        if (!$this->allowsInserts) {
+            throw new Exception('Inserts are not allowed in this context');
+        }
+        $fieldName = $this->retrieveRowEndFieldName($rowIndex);
+        $this->insertAfter($fieldName, $fields, $clangId);
+    }
+
+    /**
      * @param string $name
      * @return void
      * @throws rex_sql_exception
@@ -1050,5 +1066,44 @@ class TableManager
     {
         Table::ensureTableConfig($this->table, $this->config);
         Table::ensureFields($this->table, $this->fields);
+    }
+
+
+    /**
+     * @param int $rowIndex
+     * @return string
+     */
+    private function retrieveRowStartFieldName(int $rowIndex): string
+    {
+        return "row{$rowIndex}_start";
+    }
+
+    /**
+     * @param int $rowIndex
+     * @return string
+     */
+    private function retrieveRowEndFieldName(int $rowIndex): string
+    {
+        return "row{$rowIndex}_end";
+    }
+
+    /**
+     * @param int $rowIndex
+     * @param int $colIndex
+     * @return string
+     */
+    private function retrieveColStartFieldName(int $rowIndex, int $colIndex): string
+    {
+        return "row{$rowIndex}__col_{$colIndex}_start";
+    }
+
+    /**
+     * @param int $rowIndex
+     * @param int $colIndex
+     * @return string
+     */
+    private function retrieveColEndFieldName(int $rowIndex, int $colIndex): string
+    {
+        return "row{$rowIndex}__col_{$colIndex}_end";
     }
 }
