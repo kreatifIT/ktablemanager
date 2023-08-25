@@ -1,10 +1,16 @@
 # ktablemanager
-Erleichtert den schnellen Aufbau von YForm Tabellen über Code Skripte
+
+Der Tablemanager erleichtert den schnellen Aufbau von YForm Tabellen über Code
+Skripte.
+Dadurch können Felder und Tabellenstrukturen einfach und schnell angepasst
+werden.
 
 # Setup
-##  1. Addon registrieren
 
-In der boot.php des betreffenden Addons (z.B. project) den Pfad zu den Tablemanager Skripten angeben
+## 1. Addon registrieren
+
+In der boot.php des betreffenden Addons (z.B. project) den Pfad zu den
+Tablemanager Skripten angeben
 
 ```
 rex_extension::register('KREATIF_TABLEMANAGER_PATHS', static function (rex_extension_point $ep) {
@@ -15,10 +21,10 @@ rex_extension::register('KREATIF_TABLEMANAGER_PATHS', static function (rex_exten
 }, rex_extension::LATE);
 ```
 
-## 2. Im Redaxo Backend die YForm Tabelle anlegen
-(nur den Tabellen-Kopf, nicht die einzelnen Felder)
+## 2. Das Tablemanager Skript aufbauen
 
-## 3. Das Tabelmanager Skript aufbauen
+Im jeweiligen Addon z.B. project-Addon ein Verzeichnis `install/db_structure`
+anlegen und dort ein Skript anlegen, z.B. `prj_card_template.php`
 `project/install/db_structure/prj_card_template.php`
 
 ```
@@ -102,6 +108,76 @@ $tm->addRow(function () use ($tm) {
 $tm->synchronize();
 ```
 
-
 ## 4. Skript ausführen
-Im Redaxo Backend die betreffende YForm Table öffnen und die Datensätze anzeigen. Dort gibt es einen neuen Button "synchronisieren". Mit Klick auf diesem Button wird nun das Tablemanager Skript aufgerufen und das betreffende YForm Feld-Schema überschrieben.
+
+Im Redaxo Backend das Addon kTablemanager öffnen.
+Dort gibt es eine Liste mit allen YForm Tabellen, die über den Tablemanager
+erstellt werden.
+Mit dem Button "Synchronisieren" wird das Tabellenschema angepasst und die
+Felder in YForm angelegt und aktualisiert.
+Dieser Button befindet sich zusätzlich auch in den YForm Tabellen bei der
+Daten-Übersicht.
+
+### 5. YForm Tabelle prüfen
+
+Einen Datensatz der betreffende YForm Tabelle in der Detailansicht öffnen.
+Nun sollten die neuen Felder und die neue Tabellenstruktur sichtbar sein.
+
+# Verwendung in mehreren Addons
+
+Der Tablemanager lässt sich auch addon übergreifend verwenden. Beispielsweise
+kann ein Hotel addon eine `rex_hotel_offer` Tabelle für Angebote erstellen
+und das project addon kann diese Tabelle dann projektspezifisch anpassen und
+erweitern.
+
+```
+use KTableManager\TableManager;
+
+$tm = TableManager::extendTableManager('hotel_offer');
+
+// neue Felder werden nach dem übersetzten Feld "name" eingefügt (übersetzter Untertitel)
+$tm->insertAfterLangField('name', function ($clangId) use ($tm) {
+    $tm->addTextareaField("subtitle_$clangId", 'translate:label.prj_hotel_offer_subtitle', 'cke5-editor');
+});
+// neues Felder wird nach dem Feld "images" eingefügt
+$tm->insertAfter('images', function () use ($tm) {
+    $tm->addMediaField("custom_image", 'translate:label.prj_hotel_image', [
+        'preview' => 1,
+        'types' => '*',
+    ]);
+});
+
+// nach zweiter Zeile wird eine neue Zeile eingefügt und dort ein neues Feld 'Preis-Informationen'
+$tm->insertAfterRow(2, function () use ($tm) {
+    $tm->addRow(static function () use ($tm): void {
+        $tm->addColumn(6, static function () use ($tm): void {
+            $tm->addTextareaField("price_info_$clangId", 'translate:label.prj_hotel_offer_price_info', 'cke5-editor');
+        });
+    });
+});
+
+// nicht mehr benötigte Felder können entfernt werden
+$tm->forEachLang(function ($clangId) use ($tm) {
+    $tm->removeField("teaser_$clangId");
+});
+$tm->removeField('images');
+
+$tm->synchronize();
+```
+
+# Verwendung im Live-Betrieb
+
+Fürs Deployment empfehlen wir die Nutzung von
+ydeploy (https://github.com/yakamara/ydeploy).
+Ist ydeploy im Einsatz, sollte der Tablemanager im Live-Betrieb nicht verwendet
+werden, da er die Datenbankstruktur überschreibt.
+Dort sollte das Verfahren so sein, dass man zuerst über den Tablemanager die
+neuen Felder einbaut und aktualisiert und danach über ydeploy dann die Migration
+erstellt.
+
+Wenn kein Deployment Verfahren wie ydeploy verwendet wird, dann ist der
+Tablemanager auch im Live-Betrieb nützlich, da
+man nur, nachdem der neue Code hochgeladen wurde, bei den einzelnen Tabellen den
+synchroniseren Button klicken muss, um die
+Felder zu aktualisieren (vielleicht noch zusätzlich Feldlöschung, falls man die
+alten Felder und deren Daten in der DB komplett löschen möchte).
