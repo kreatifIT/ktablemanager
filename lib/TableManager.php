@@ -578,6 +578,26 @@ class TableManager
         );
     }
 
+    public function addMediaListField(
+        string $name,
+        string $label,
+        array  $options = []
+    ): void
+    {
+        $this->addField(
+            $name,
+            'be_media',
+            $label,
+            array_merge([
+                'preview' => false,
+                'db_type' => 'text',
+                'multiple' => true,
+            ], $options)
+        );
+    }
+
+
+
     public function addImageListField(
         string $name,
         string $label,
