@@ -28,12 +28,13 @@ class Table
     /**
      * @throws rex_sql_exception
      */
-    public static function ensureTableConfig(string $table, array $config): void {
+    public static function ensureTableConfig(string $table, array $config): void
+    {
         $tableDataset = rex_yform_manager_table::get($table);
         $sql = rex_sql::factory();
         $sql->setTable(rex::getTablePrefix() . 'yform_table');
         $sql->setValues($config);
-        if($tableDataset) {
+        if ($tableDataset) {
             $sql->setWhere('id = :id', [
                 'id' => $tableDataset->getId()
             ]);
@@ -55,7 +56,10 @@ class Table
             $typeName = $field['typeName'];
             $createValues = $field['createValues'] ?: [];
             $updateValues = $field['updateValues'] ?: [];
-            $updateValues = array_merge($updateValues, ['prio' => $key]);
+            $updateValues = array_merge($updateValues, [
+                'prio' => $key,
+                'ktablemanager_tmp_updated' => '1'
+            ]);
 
             if ('validate' == $yformType) {
                 Usability::ensureValidateField($table, $fieldName, $typeName, $createValues, $updateValues);

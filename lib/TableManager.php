@@ -35,7 +35,7 @@ class TableManager
     public function __construct(string $table)
     {
         $this->table = rex::getTable(ltrim($table, 'rex_'));
-        Table::clearFieldSchema($table);
+//        Table::clearFieldSchema($table);
         $this->setDefaultConfig();
         static::$tables[$table] = $this;
     }
