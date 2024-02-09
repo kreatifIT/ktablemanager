@@ -845,7 +845,31 @@ class TableManager
     /**
      * @param string $name
      * @param string $label
-     * @param array $options
+     * @param string $field
+     * @param array  $options
+     * @return void
+     */
+    public function addGeometryPointField(
+        string $name,
+        string $label,
+        string $field,
+        array $options = []
+    ): void {
+        $this->addField(
+            $name,
+            'geometry_point',
+            $label,
+            array_merge([
+                'field' => $field,
+                'db_type' => 'text',
+            ], $options)
+        );
+    }
+
+    /**
+     * @param string $name
+     * @param string $label
+     * @param array  $options
      * @return void
      */
     public function addTextField(
