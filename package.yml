@@ -3,6 +3,9 @@ author: Daniel Planötscher, Michael Rainer
 supportpage: https://github.com/kreatifIT/ktablemanager/
 version: '1.0.0'
 
+"require": {
+    "php": ">=7.4",
+}
 requires:
     redaxo: '>=5.14'
     packages:

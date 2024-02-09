@@ -29,9 +29,6 @@ class TableManager
     private int $langTabs = 0;
     private int $fieldset = 0;
 
-    /**
-     * @throws rex_sql_exception
-     */
     public function __construct(string $table)
     {
         $this->table = rex::getTable(ltrim($table, 'rex_'));
@@ -186,7 +183,7 @@ class TableManager
      * @param string $fieldName
      * @return false|int|string
      */
-    private function getIndex(string $fieldName): bool|int|string
+    private function getIndex(string $fieldName)
     {
         return array_search($fieldName, array_column($this->fields, 'fieldName'));
     }

@@ -21,7 +21,9 @@ class Table
         $sql = rex_sql::factory();
         $query = "DELETE FROM rex_yform_field WHERE table_name = :tname";
         $sql->setQuery($query, ['tname' => $tableName]);
-        $table?->deleteCache();
+        if($table) {
+            $table->deleteCache();
+        }
         $sql->execute();
     }
 
