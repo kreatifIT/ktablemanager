@@ -831,11 +831,13 @@ class TableManager
             'fieldName' => $fieldName,
             'typeName' => 'text',
             'createValues' => [
-                'list_hidden' => $listHidden,
-                'search' => $search,
                 'label' => 'translate:label.designation',
                 'db_type' => 'varchar(191)',
             ],
+            'updateValues' => [
+                'list_hidden' => $listHidden,
+                'search' => $search,
+            ]
         ];
     }
 
