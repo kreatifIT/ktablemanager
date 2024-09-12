@@ -10,7 +10,7 @@ requires:
     redaxo: '>=5.12'
     packages:
         yform: '>=3.4'
-        yform_usability: ^1.10
+        yform_usability: '>=1.10'
 
 page:
     title: translate:title
