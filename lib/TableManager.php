@@ -108,6 +108,11 @@ class TableManager
         $this->config['hidden'] = $hidden ? 1 : 0;
     }
 
+    public function setPriority(int $prio): void
+    {
+        $this->config['prio'] = $prio;
+    }
+
     public function setAddNew(bool $addNew): void
     {
         $this->config['add_new'] = $addNew ? 1 : 0;
